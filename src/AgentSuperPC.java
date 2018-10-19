@@ -8,7 +8,7 @@ public class AgentSuperPC extends Agent {
 	private int cpuTaken; //PC's cpu taken by programs
 	
 	public void setup() {
-		System.out.println("Hello world! I'm SuperPC!");
+		System.out.println("Hello world! I'm Super PC!");
 	}
 
 	public int getMemory() {
@@ -33,6 +33,14 @@ public class AgentSuperPC extends Agent {
 
 	public void setCpuTaken(int cpuTaken) {
 		this.cpuTaken = cpuTaken;
+	}
+	
+	public double getPercentageMemoryTaken() {
+		return ((double)memoryTaken/memory)*100;
+	}
+	
+	public double getPercentageCpuTaken() {
+		return ((double)cpuTaken/cpu)*100;
 	}
 	
 }

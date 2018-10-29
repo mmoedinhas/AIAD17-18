@@ -4,16 +4,35 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 
 public class AgentSuperPC extends Agent {
-
+	
+	private String name; //superPC's name
 	private int memory; // PC's memory in kB
 	private int cpu; // PC's cpu in MHz
 	private int memoryTaken; // PC's memory taken by programs
 	private int cpuTaken; // PC's cpu taken by programs
 
 	public void setup() {
-		addBehaviour(new ListeningBehaviour());
+		
+		initPC();
+		
+		System.out.println("Hello world! I'm " + this.name + "!");
+		System.out.println("I have " + this.memory + "KB of memory");
+		System.out.println("I have " + this.cpu + "MHz of cpu power");
 	}
-
+	
+	public void initPC() {
+		this.memoryTaken = 0;
+		this.cpuTaken = 0;
+		
+		Object[] args = getArguments();
+		
+		this.name = (String)args[0];
+		Integer[] quirks = (Integer[])args[1];
+		
+		this.memory = quirks[0];
+		this.cpu = quirks[1];
+	}
+	
 	public int getMemory() {
 		return memory;
 	}
@@ -44,22 +63,6 @@ public class AgentSuperPC extends Agent {
 
 	public double getPercentageCpuTaken() {
 		return ((double) cpuTaken / cpu) * 100;
-	}
-
-	class ListeningBehaviour extends CyclicBehaviour {
-
-		public void action() {
-			ACLMessage msg = receive();
-			if (msg != null) {
-				System.out.println(msg);
-				ACLMessage reply = msg.createReply();
-				reply.setPerformative(ACLMessage.INFORM);
-				reply.setContent("Got your message!");
-				send(reply);
-			} else {
-				block();
-			}
-		}
 	}
 
 }

@@ -29,10 +29,10 @@ public class StartApp {
 		// Get configurations
 		Config config = new Config(configFileName);
 		int clientNo = Integer.parseInt(config.getProperty("clientsNo"));
-		int superPCNo = Integer.parseInt(config.getProperty("serversNo"));
-		int[] memoryNeededBounds = {Integer.parseInt(config.getProperty("memoryLower")),Integer.parseInt(config.getProperty("memoryUpper"))};
-		int[] cpuNeededBounds = {Integer.parseInt(config.getProperty("cpuLower")),Integer.parseInt(config.getProperty("cpuUpper"))};
-		int[] timeNeededBounds = {Integer.parseInt(config.getProperty("timeLower")),Integer.parseInt(config.getProperty("timeUpper"))};
+		int superPCNo = Integer.parseInt(config.getProperty("superPCNo"));
+		int[] memoryNeededBounds = {Integer.parseInt(config.getProperty("clientMemoryLower")),Integer.parseInt(config.getProperty("clientMemoryUpper"))};
+		int[] cpuNeededBounds = {Integer.parseInt(config.getProperty("clientCPULower")),Integer.parseInt(config.getProperty("clientCPUUpper"))};
+		int[] timeNeededBounds = {Integer.parseInt(config.getProperty("clientTimeLower")),Integer.parseInt(config.getProperty("clientTimeUpper"))};
 
 		// Launch client agents
 
@@ -59,7 +59,10 @@ public class StartApp {
 		// Launch SuperPC agents
 
 		try {
-
+			int [] memoryAvailableBounds = {Integer.parseInt(config.getProperty("superPCMemoryLower")),
+					Integer.parseInt(config.getProperty("superPCMemoryUpper"))};
+			int [] cpuAvailableBounds = {Integer.parseInt(config.getProperty("superPCCPULower")),
+					Integer.parseInt(config.getProperty("superPCCPULower"))};
 			SuperPCArgsGenerator superPcsGen = new SuperPCArgsGenerator(superPCNo, 
 					memoryAvailableBounds, cpuAvailableBounds);
 

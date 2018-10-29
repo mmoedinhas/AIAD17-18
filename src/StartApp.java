@@ -4,18 +4,16 @@ import generator.SuperPCArgsGenerator;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.wrapper.*;
+import util.Config;
 
 public class StartApp {
 
 	/**
-	 * @param args
-	 *            [<numberOfClients>,<numberOfSuperPCs>,<memoryNeededLowerBound>,<memoryNeededUpperBound>,
-	 *            <cpuNeededLowerBound>, <cpuNeededUpperBound>,
-	 *            <timeNeededLowerBound>, <timeNeededUpperBound>,
-	 *            <memoryAvailableLowerBound>, <memoryAvailableUpperBound>,
-	 *            <cpuAvailableLowerBound>, <cpuAvailableUpperBound>]
+	 * @param args [<configFileName>]
 	 **/
 	public static void main(String[] args) {
+		
+		String configFileName = args[0];
 
 		// Get a JADE runtime
 		Runtime rt = Runtime.instance();
@@ -27,14 +25,14 @@ public class StartApp {
 		// Create an additional container
 		Profile p2 = new ProfileImpl();
 		ContainerController container = rt.createAgentContainer(p2);
-
-		int clientNo = Integer.parseInt(args[0]);
-		int superPCNo = Integer.parseInt(args[1]);
-		int[] memoryNeededBounds = { Integer.parseInt(args[2]), Integer.parseInt(args[3]) };
-		int[] cpuNeededBounds = { Integer.parseInt(args[4]), Integer.parseInt(args[5]) };
-		int[] timeNeededBounds = { Integer.parseInt(args[6]), Integer.parseInt(args[7]) };
-		int[] memoryAvailableBounds = { Integer.parseInt(args[8]), Integer.parseInt(args[9]) };
-		int[] cpuAvailableBounds = { Integer.parseInt(args[10]), Integer.parseInt(args[11]) };
+		
+		// Get configurations
+		Config config = new Config(configFileName);
+		int clientNo = Integer.parseInt(config.getProperty("clientsNo"));
+		int superPCNo = Integer.parseInt(config.getProperty("serversNo"));
+		int[] memoryNeededBounds = {Integer.parseInt(config.getProperty("memoryLower")),Integer.parseInt(config.getProperty("memoryUpper"))};
+		int[] cpuNeededBounds = {Integer.parseInt(config.getProperty("cpuLower")),Integer.parseInt(config.getProperty("cpuUpper"))};
+		int[] timeNeededBounds = {Integer.parseInt(config.getProperty("timeLower")),Integer.parseInt(config.getProperty("timeUpper"))};
 
 		// Launch client agents
 

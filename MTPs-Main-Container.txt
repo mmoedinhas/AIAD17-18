@@ -1,1 +1,1 @@
-http://feup-b202d20.fe.up.pt:7778/acc
+http://feup-i003d12.fe.up.pt:7778/acc

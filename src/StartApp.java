@@ -33,7 +33,32 @@ public class StartApp {
 		int[] memoryNeededBounds = {Integer.parseInt(config.getProperty("clientMemoryLower")),Integer.parseInt(config.getProperty("clientMemoryUpper"))};
 		int[] cpuNeededBounds = {Integer.parseInt(config.getProperty("clientCPULower")),Integer.parseInt(config.getProperty("clientCPUUpper"))};
 		int[] timeNeededBounds = {Integer.parseInt(config.getProperty("clientTimeLower")),Integer.parseInt(config.getProperty("clientTimeUpper"))};
+		String[] superPCNames = new String[superPCNo];
+		// Launch SuperPC agents
 
+				try {
+					int [] memoryAvailableBounds = {Integer.parseInt(config.getProperty("superPCMemoryLower")),
+							Integer.parseInt(config.getProperty("superPCMemoryUpper"))};
+					int [] cpuAvailableBounds = {Integer.parseInt(config.getProperty("superPCCPULower")),
+							Integer.parseInt(config.getProperty("superPCCPULower"))};
+					SuperPCArgsGenerator superPcsGen = new SuperPCArgsGenerator(superPCNo, 
+							memoryAvailableBounds, cpuAvailableBounds);
+
+					Integer[][] superPcsQuirks = superPcsGen.generate();
+
+					for (int i = 0; i < superPcsQuirks.length; i++) {
+						String superPCName = "superPC" + i;
+						Object[] superPCArgs = { superPCName, superPcsQuirks[i] };
+						AgentController ac = container.createNewAgent(superPCName, "agent.AgentSuperPC", superPCArgs);
+						superPCNames[i] = ac.getName();
+						ac.start();
+					}
+
+				} catch (StaleProxyException e) {
+					System.out.println("Error launching superPCs");
+					e.printStackTrace();
+					System.exit(1);
+				}
 		// Launch client agents
 
 		try {
@@ -45,7 +70,7 @@ public class StartApp {
 
 			for (int i = 0; i < clientsQuirks.length; i++) {
 				String clientName = "client" + i;
-				Object[] clientArgs = { clientName, clientsQuirks[i] };
+				Object[] clientArgs = { clientsQuirks[i],superPCNames };
 				AgentController ac = container.createNewAgent(clientName, "agent.AgentClient", clientArgs);
 				ac.start();
 			}
@@ -56,30 +81,7 @@ public class StartApp {
 			System.exit(1);
 		}
 
-		// Launch SuperPC agents
-
-		try {
-			int [] memoryAvailableBounds = {Integer.parseInt(config.getProperty("superPCMemoryLower")),
-					Integer.parseInt(config.getProperty("superPCMemoryUpper"))};
-			int [] cpuAvailableBounds = {Integer.parseInt(config.getProperty("superPCCPULower")),
-					Integer.parseInt(config.getProperty("superPCCPULower"))};
-			SuperPCArgsGenerator superPcsGen = new SuperPCArgsGenerator(superPCNo, 
-					memoryAvailableBounds, cpuAvailableBounds);
-
-			Integer[][] superPcsQuirks = superPcsGen.generate();
-
-			for (int i = 0; i < superPcsQuirks.length; i++) {
-				String superPCName = "superPC" + i;
-				Object[] superPCArgs = { superPCName, superPcsQuirks[i] };
-				AgentController ac = container.createNewAgent(superPCName, "agent.AgentSuperPC", superPCArgs);
-				ac.start();
-			}
-
-		} catch (StaleProxyException e) {
-			System.out.println("Error launching superPCs");
-			e.printStackTrace();
-			System.exit(1);
-		}
+		
 	}
 
 }

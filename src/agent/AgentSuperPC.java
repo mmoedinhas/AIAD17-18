@@ -2,10 +2,11 @@ package agent;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.proto.ContractNetResponder;
+import jade.lang.acl.MessageTemplate;
 
 public class AgentSuperPC extends Agent {
 	
-	private String name; //superPC's name
 	private int memory; // PC's memory in kB
 	private int cpu; // PC's cpu in MHz
 	private int memoryTaken; // PC's memory taken by programs
@@ -15,9 +16,12 @@ public class AgentSuperPC extends Agent {
 		
 		initPC();
 		
-		System.out.println("Hello world! I'm " + this.name + "!");
+		/*System.out.println("Hello world! I'm " + this.getName() + "!");
 		System.out.println("I have " + this.memory + "KB of memory");
-		System.out.println("I have " + this.cpu + "MHz of cpu power");
+		System.out.println("I have " + this.cpu + "MHz of cpu power");*/
+		
+		//add superPC test behaviour
+		addBehaviour(new AnswerRequest(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
 	}
 	
 	public void initPC() {
@@ -25,13 +29,32 @@ public class AgentSuperPC extends Agent {
 		this.cpuTaken = 0;
 		
 		Object[] args = getArguments();
-		
-		this.name = (String)args[0];
+
 		Integer[] quirks = (Integer[])args[1];
 		
 		this.memory = quirks[0];
 		this.cpu = quirks[1];
 	}
+	
+	class AnswerRequest extends ContractNetResponder {
+		
+		public AnswerRequest(Agent a, MessageTemplate mt) {
+			super(a, mt);
+		}
+		
+		protected ACLMessage handleCfp(ACLMessage cfp) {
+			ACLMessage reply = cfp.createReply();
+			//reply.setPerformative(ACLMessage.PROPOSE);
+			//reply.setContent("I will do it for free!!!");
+			// ...
+			System.out.println("content");
+			System.out.println(cfp.getContent());
+			return reply;
+		}
+		
+		
+	}
+	
 	
 	public int getMemory() {
 		return memory;

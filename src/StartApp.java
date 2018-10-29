@@ -2,7 +2,8 @@ import jade.core.Runtime;
 import generator.ClientArgsGenerator;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
-import jade.wrapper.*; 
+import jade.wrapper.*;
+import util.Config; 
 
 public class StartApp {
 	
@@ -11,7 +12,7 @@ public class StartApp {
 	 * <cpuNeededLowerBound>, <cpuNeededUpperBound>, <timeNeededLowerBound>, <timeNeededUpperBound>]
 	 **/
 	public static void main(String[] args) {
-		
+		String configFileName = args[0];
 		// Get a JADE runtime
 		Runtime rt = Runtime.instance();
 
@@ -22,12 +23,12 @@ public class StartApp {
 		// Create an additional container
 		Profile p2 = new ProfileImpl();
 		ContainerController container = rt.createAgentContainer(p2);
-		
-		int clientNo = Integer.parseInt(args[0]);
-		int serverNo = Integer.parseInt(args[1]);
-		int[] memoryNeededBounds = {Integer.parseInt(args[2]),Integer.parseInt(args[3])};
-		int[] cpuNeededBounds = {Integer.parseInt(args[4]),Integer.parseInt(args[5])};
-		int[] timeNeededBounds = {Integer.parseInt(args[6]),Integer.parseInt(args[7])};
+		Config config = new Config(configFileName);
+		int clientNo = Integer.parseInt(config.getProperty("clientsNo"));
+		int serverNo = Integer.parseInt(config.getProperty("serversNo"));
+		int[] memoryNeededBounds = {Integer.parseInt(config.getProperty("memoryLower")),Integer.parseInt(config.getProperty("memoryUpper"))};
+		int[] cpuNeededBounds = {Integer.parseInt(config.getProperty("cpuLower")),Integer.parseInt(config.getProperty("cpuUpper"))};
+		int[] timeNeededBounds = {Integer.parseInt(config.getProperty("timeLower")),Integer.parseInt(config.getProperty("timeUpper"))};
 		
 		// Launch client agents
 		

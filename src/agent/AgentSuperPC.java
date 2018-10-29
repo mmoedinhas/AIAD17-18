@@ -49,10 +49,9 @@ public class AgentSuperPC extends Agent {
 		
 		protected ACLMessage handleCfp(ACLMessage cfp) {
 			ACLMessage reply = cfp.createReply();
-			//reply.setPerformative(ACLMessage.PROPOSE);
-			//reply.setContent("I will do it for free!!!");
+			reply.setPerformative(ACLMessage.PROPOSE);
+			
 			// ...
-			System.out.println("content");
 			JSONParser parser = new JSONParser();
 			JSONObject content;
 			try {
@@ -60,11 +59,8 @@ public class AgentSuperPC extends Agent {
 				int memoryNeeded = ((Long)content.get("memoryNeeded")).intValue();
 				int cpuNeeded = ((Long)content.get("cpuNeeded")).intValue();
 				int timeNeeded = ((Long)content.get("timeNeeded")).intValue();
-				if(canAccept(memoryNeeded,cpuNeeded)){
-					System.out.println("aceitei");
-				}else{
-					System.out.println("nao aceitei");
-				}
+				boolean accept = canAccept(memoryNeeded,cpuNeeded);
+				reply.setContent(createResponse(accept));
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -75,6 +71,17 @@ public class AgentSuperPC extends Agent {
 			return reply;
 		}
 		
+		/**
+		 * Creates reply to the proposal
+		 * @param accept
+		 * @return reply to proposal
+		 */
+		private String createResponse(boolean accept) {
+			JSONObject response = new JSONObject();
+			response.put("Accept", accept);
+			return response.toJSONString();
+		}
+
 		/**
 		 * Checks if we can accept the proposal
 		 * @param memoryNeeded

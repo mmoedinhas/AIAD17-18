@@ -7,6 +7,7 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.ContractNetInitiator;
+import org.json.simple.JSONObject;
 
 public class AgentClient extends Agent {
 	
@@ -50,10 +51,17 @@ public class AgentClient extends Agent {
 	// http://jade.tilab.com/doc/api/jade/proto/ContractNetInitiator.html
 	public class RequireSuperPC extends ContractNetInitiator {
 
-		public RequireSuperPC(Agent a, ACLMessage cfp) {
+		private AgentClient agent;
+		
+		public RequireSuperPC(AgentClient a, ACLMessage cfp) {
 			super(a, cfp);
+			this.agent = a;
 			// TODO Auto-generated constructor stub
 		}
+		//private int serverNo; //number of servers available
+		//private int memoryNeeded; //memory needed in KBs
+		//private int cpuNeeded; //cpu power needed in Mhz
+		//private int timeNeeded; //time needed in s
 		
 		protected Vector prepareCfps(ACLMessage cfp) {
 			Vector v = new Vector();
@@ -63,10 +71,15 @@ public class AgentClient extends Agent {
 				System.out.println(i);
 				cfp.addReceiver(new AID(superPCsNames[i],AID.ISGUID));
 			}
-			cfp.setContent("ola!!");
-			v.add(cfp);
 			
-			System.out.println(v.elementAt(0));
+			//create message content
+			JSONObject messageContent = new JSONObject();
+			messageContent.put("memoryNeeded",this.agent.memoryNeeded);
+			messageContent.put("cpuNeeded",this.agent.cpuNeeded);
+			messageContent.put("timeNeeded",this.agent.timeNeeded);
+			
+			cfp.setContent(messageContent.toJSONString());
+			v.add(cfp);
 			return v;
 		}
 		

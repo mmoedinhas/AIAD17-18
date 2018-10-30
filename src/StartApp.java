@@ -1,4 +1,7 @@
 import jade.core.Runtime;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import generator.ClientArgsGenerator;
 import generator.SuperPCArgsGenerator;
 import jade.core.Profile;
@@ -9,10 +12,12 @@ import util.Config;
 public class StartApp {
 
 	/**
-	 * @param args [<configFileName>]
+	 * @param args
+	 *            [<configFileName>]
+	 * @throws InterruptedException
 	 **/
-	public static void main(String[] args) {
-		
+	public static void main(String[] args) throws InterruptedException {
+
 		String configFileName = args[0];
 
 		// Get a JADE runtime
@@ -25,63 +30,68 @@ public class StartApp {
 		// Create an additional container
 		Profile p2 = new ProfileImpl();
 		ContainerController container = rt.createAgentContainer(p2);
-		
+
 		// Get configurations
 		Config config = new Config(configFileName);
 		int clientNo = Integer.parseInt(config.getProperty("clientsNo"));
+		System.out.println(clientNo);
 		int superPCNo = Integer.parseInt(config.getProperty("superPCNo"));
-		int[] memoryNeededBounds = {Integer.parseInt(config.getProperty("clientMemoryLower")),Integer.parseInt(config.getProperty("clientMemoryUpper"))};
-		int[] cpuNeededBounds = {Integer.parseInt(config.getProperty("clientCPULower")),Integer.parseInt(config.getProperty("clientCPUUpper"))};
-		int[] timeNeededBounds = {Integer.parseInt(config.getProperty("clientTimeLower")),Integer.parseInt(config.getProperty("clientTimeUpper"))};
+		int[] memoryNeededBounds = { Integer.parseInt(config.getProperty("clientMemoryLower")),
+				Integer.parseInt(config.getProperty("clientMemoryUpper")) };
+		int[] cpuNeededBounds = { Integer.parseInt(config.getProperty("clientCPULower")),
+				Integer.parseInt(config.getProperty("clientCPUUpper")) };
+		int[] timeNeededBounds = { Integer.parseInt(config.getProperty("clientTimeLower")),
+				Integer.parseInt(config.getProperty("clientTimeUpper")) };
 		String[] superPCNames = new String[superPCNo];
 		// Launch SuperPC agents
 
-				try {
-					int [] memoryAvailableBounds = {Integer.parseInt(config.getProperty("superPCMemoryLower")),
-							Integer.parseInt(config.getProperty("superPCMemoryUpper"))};
-					int [] cpuAvailableBounds = {Integer.parseInt(config.getProperty("superPCCPULower")),
-							Integer.parseInt(config.getProperty("superPCCPULower"))};
-					SuperPCArgsGenerator superPcsGen = new SuperPCArgsGenerator(superPCNo, 
-							memoryAvailableBounds, cpuAvailableBounds);
-
-					Integer[][] superPcsQuirks = superPcsGen.generate();
-
-					for (int i = 0; i < superPcsQuirks.length; i++) {
-						String superPCName = "superPC" + i;
-						Object[] superPCArgs = { superPCName, superPcsQuirks[i] };
-						AgentController ac = container.createNewAgent(superPCName, "agent.AgentSuperPC", superPCArgs);
-						superPCNames[i] = ac.getName();
-						ac.start();
-					}
-
-				} catch (StaleProxyException e) {
-					System.out.println("Error launching superPCs");
-					e.printStackTrace();
-					System.exit(1);
-				}
-		// Launch client agents
-
 		try {
+			int[] memoryAvailableBounds = { Integer.parseInt(config.getProperty("superPCMemoryLower")),
+					Integer.parseInt(config.getProperty("superPCMemoryUpper")) };
+			int[] cpuAvailableBounds = { Integer.parseInt(config.getProperty("superPCCPULower")),
+					Integer.parseInt(config.getProperty("superPCCPUUpper")) };
+			SuperPCArgsGenerator superPcsGen = new SuperPCArgsGenerator(superPCNo, memoryAvailableBounds,
+					cpuAvailableBounds);
 
-			ClientArgsGenerator clientsGen = new ClientArgsGenerator(clientNo, superPCNo, memoryNeededBounds,
-					cpuNeededBounds, timeNeededBounds);
+			Integer[][] superPcsQuirks = superPcsGen.generate();
 
-			Integer[][] clientsQuirks = clientsGen.generate();
-
-			for (int i = 0; i < clientsQuirks.length; i++) {
-				String clientName = "client" + i;
-				Object[] clientArgs = { clientsQuirks[i],superPCNames };
-				AgentController ac = container.createNewAgent(clientName, "agent.AgentClient", clientArgs);
+			for (int i = 0; i < superPcsQuirks.length; i++) {
+				String superPCName = "superPC" + i;
+				Object[] superPCArgs = { superPCName, superPcsQuirks[i] };
+				AgentController ac = container.createNewAgent(superPCName, "agent.AgentSuperPC", superPCArgs);
+				superPCNames[i] = ac.getName();
 				ac.start();
 			}
 
 		} catch (StaleProxyException e) {
-			System.out.println("Error launching clients");
+			System.out.println("Error launching superPCs");
+			e.printStackTrace();
+			System.exit(1);
+		}
+		// Launch client agents
+
+		try {
+			ClientArgsGenerator clientsGen = new ClientArgsGenerator(clientNo, superPCNo, memoryNeededBounds,
+					cpuNeededBounds, timeNeededBounds);
+			Integer[][] clientsQuirks = clientsGen.generate();
+			
+			ConcurrentLinkedQueue<AgentController> agentsQueue = new ConcurrentLinkedQueue<AgentController>();
+
+			for (int i = 0; i < clientsQuirks.length; i++) {
+				String clientName = "client" + i;
+				Object[] clientArgs = { clientsQuirks[i], superPCNames, agentsQueue};
+				AgentController ac = container.createNewAgent(clientName, "agent.AgentClient", clientArgs);
+				agentsQueue.add(ac);
+			}
+			
+			agentsQueue.peek().start();
+
+		} catch (StaleProxyException e) {
+			System.out.println("Error launching first client");
 			e.printStackTrace();
 			System.exit(1);
 		}
 
-		
 	}
 
 }

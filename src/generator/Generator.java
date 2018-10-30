@@ -3,9 +3,9 @@ import java.util.Random;
 
 public abstract class Generator {
 	
-	public int generate(int lowerBound, int upperBound) {
-		Random randomNum = new Random();
-		return lowerBound + randomNum.nextInt(upperBound);
+	public int generate(int min, int max) {
+		Random rand = new Random();
+		return rand.nextInt((max - min) + 1) + min;
 	}
 
 }

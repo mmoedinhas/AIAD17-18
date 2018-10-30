@@ -1,12 +1,9 @@
 package agent;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.proto.ContractNetResponder;
 import util.RequiredSpecs;
@@ -14,11 +11,16 @@ import jade.lang.acl.MessageTemplate;
 
 public class AgentSuperPC extends Agent {
 	
+	private final static double pricePerMemoryUnit = 0.2; //1MB is 0.2 euro
+	private final static double pricePerCpuUnit = 1.2; //1Mhz of processing power is 1.2 euro
+	private final static double pricePerSecond = 0.01; //1 second of usage is 0.01 euro
+	
 	private int memory; // PC's memory in kB
 	private int cpu; // PC's cpu in MHz
 	private int memoryTaken; // PC's memory taken by programs
 	private int cpuTaken; // PC's cpu taken by programs
-	HashMap<String,RequiredSpecs> acceptedProposals = new HashMap<String, RequiredSpecs>(); //PC's accepted proposals with the name of the agent and the memory and cpu required by the agent
+	ConcurrentHashMap<String,RequiredSpecs> acceptedProposals = 
+			new ConcurrentHashMap<String, RequiredSpecs>(); //PC's accepted proposals with the name of the agent and the memory and cpu required by the agent
 
 	public void setup() {
 		
@@ -55,12 +57,18 @@ public class AgentSuperPC extends Agent {
 		 * Handle received cfp message
 		 */
 		protected ACLMessage handleCfp(ACLMessage cfp) {
+			System.out.println("tou a receber mensagem do " + cfp.getSender().getName());
 			ACLMessage reply = cfp.createReply();
-			reply.setPerformative(ACLMessage.PROPOSE);
 			RequiredSpecs specs = new RequiredSpecs(cfp.getContent());		
 			boolean accept = canAccept(specs,cfp.getSender().getName());
-			reply.setContent(createResponse(accept));
-		
+			
+			if(accept) {
+				reply.setPerformative(ACLMessage.PROPOSE);
+				reply.setContent(createResponse(accept,specs));
+			} else {
+				reply.setPerformative(ACLMessage.REFUSE);
+			}
+			
 			return reply;
 		}
 				
@@ -69,9 +77,11 @@ public class AgentSuperPC extends Agent {
 		 * @param accept
 		 * @return reply to proposal
 		 */
-		private String createResponse(boolean accept) {
+		private String createResponse(boolean accept,RequiredSpecs specs) {
 			JSONObject response = new JSONObject();
 			response.put("Accept", accept);
+			if(accept)
+				response.put("price", superPC.getPrice(specs));
 			return response.toJSONString();
 		}
 
@@ -87,13 +97,20 @@ public class AgentSuperPC extends Agent {
 			return false;
 		}
 		
+		/**
+		 * Allocates the specs needed when we accept a proposal
+		 * @param specs
+		 * @param sender
+		 */
 		private void allocateSpecs(RequiredSpecs specs,String sender) {
 			superPC.setMemoryTaken(superPC.getMemoryTaken() + specs.getMemory() );
 			superPC.setCpuTaken(superPC.getCpuTaken() + specs.getCpu());
 			superPC.acceptedProposals.put(sender, specs);
 		}
 
-	
+		/**
+		 * Deallocates the specs when the client rejects our proposals
+		 */
 		protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
 			System.out.println("sou um pc e fui rejeitado");
 			String clientName = reject.getSender().getName();
@@ -102,6 +119,7 @@ public class AgentSuperPC extends Agent {
 		}
 
 		private void deallocateSpecs(String clientName) {
+			
 			RequiredSpecs proposalSpecs = superPC.acceptedProposals.get(clientName);
 			superPC.setMemoryTaken(superPC.getMemoryTaken() - proposalSpecs.getMemory() );
 			superPC.setCpuTaken(superPC.getCpuTaken() - proposalSpecs.getCpu());
@@ -154,12 +172,17 @@ public class AgentSuperPC extends Agent {
 		this.cpuTaken = cpuTaken;
 	}
 
-	public double getPercentageMemoryTaken() {
-		return ((double) memoryTaken / memory) * 100;
+	public double getFractionMemoryTaken() {
+		return ((double) memoryTaken / memory);
 	}
 
-	public double getPercentageCpuTaken() {
-		return ((double) cpuTaken / cpu) * 100;
+	public double getFractionCpuTaken() {
+		return ((double) cpuTaken / cpu);
 	}
 
+	public double getPrice(RequiredSpecs specs){
+		double priceMemory = specs.getMemory()*this.pricePerMemoryUnit*(1 - getFractionMemoryTaken());
+		double priceCPU = specs.getCpu()*this.pricePerCpuUnit*(1 - getFractionCpuTaken());
+		return (priceMemory + priceCPU)*specs.getTime()*this.pricePerSecond;
+	}
 }

@@ -1,6 +1,8 @@
 package agent;
 
+import java.util.Iterator;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -8,9 +10,13 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.ContractNetInitiator;
+import jade.wrapper.AgentController;
+import jade.wrapper.StaleProxyException;
 import util.RequiredSpecs;
 
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class AgentClient extends Agent {
 
@@ -19,20 +25,11 @@ public class AgentClient extends Agent {
 	private int cpuNeeded; // cpu power needed in Mhz
 	private int timeNeeded; // time needed in s
 	private String[] superPCsNames; // names of the superPCs
+	private ConcurrentLinkedQueue<AgentController> agentsQueue;
 
 	public void setup() {
 
 		initClient();
-
-		/*
-		 * System.out.println("Hello world! I'm " + this.getName() + "!");
-		 * System.out.println("There are " + serverNo + " servers available.");
-		 * System.out.println("I need " + this.memoryNeeded + "KB of memory");
-		 * System.out.println("I need " + this.cpuNeeded + "MHz of cpu power");
-		 * System.out.println("I want to stay in this computer for " +
-		 * this.timeNeeded + " seconds ");
-		 */
-
 		// add test client behaviour
 		addBehaviour(new RequireSuperPC(this, new ACLMessage(ACLMessage.CFP)));
 
@@ -43,6 +40,7 @@ public class AgentClient extends Agent {
 
 		Integer[] quirks = (Integer[]) args[0];
 		String[] superPCNames = (String[]) args[1];
+		this.agentsQueue = (ConcurrentLinkedQueue<AgentController>)args[2];
 		this.serverNo = quirks[0];
 		this.memoryNeeded = quirks[1];
 		this.cpuNeeded = quirks[2];
@@ -75,8 +73,6 @@ public class AgentClient extends Agent {
 			Vector v = new Vector();
 
 			for (int i = 0; i < superPCsNames.length; i++) {
-				System.out.println(superPCsNames[i]);
-				System.out.println(i);
 				cfp.addReceiver(new AID(superPCsNames[i], AID.ISGUID));
 			}
 
@@ -90,27 +86,65 @@ public class AgentClient extends Agent {
 		protected void handleAllResponses(Vector responses, Vector acceptances) {
 
 			System.out.println("got " + responses.size() + " responses!");
-
-			for (int i = 0; i < responses.size(); i++) {
-				System.out.println(((ACLMessage)responses.elementAt(i)).getContent());
-			}
 			processProposal(responses, acceptances);
 		}
 		
-		protected void processProposal(Vector responses, Vector acceptances){
-			System.out.println("im looking at my proposals");
+		protected void processProposal(Vector responses, Vector acceptances) {
+			
+			double minPrice = Double.MAX_VALUE;
+			double minPriceIndex = -1;
+			
+			for(int i=0; i<responses.size(); i++) {
+	
+				if(((ACLMessage) responses.get(i)).getPerformative() == ACLMessage.REFUSE) {
+					System.out.println("Sou um cliente rejeitado :(");
+					continue;
+				}
+				
+				JSONParser parser = new JSONParser();
+				JSONObject content;
+				double proposedPrice = 0;
+				
+				try {
+					content = (JSONObject) parser.parse(((ACLMessage) responses.get(i)).getContent());
+					proposedPrice = ((double)content.get("price"));
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+				
+				if(minPrice >= proposedPrice) {
+					minPrice = proposedPrice;
+					minPriceIndex = i;
+				}
+			}
+			
 			for(int i=0; i<responses.size(); i++) {
 				ACLMessage msg = ((ACLMessage) responses.get(i)).createReply();
-				if(i % 2 == 0)
-					msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL); // OR NOT!
+				
+				if(minPriceIndex == i)
+					msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
 				else
 					msg.setPerformative(ACLMessage.REJECT_PROPOSAL);
+				
 				acceptances.add(msg);
 			}
 		}
 		
+		protected void callNextAgentInQueue() {
+			agent.agentsQueue.poll();
+			if(agent.agentsQueue.size() != 0) {
+				try {
+					agent.agentsQueue.peek().start();
+				} catch (StaleProxyException e) {
+					System.out.println("Error launching next client");
+					e.printStackTrace();
+					System.exit(1);
+				}
+			}
+		}
+		
 		protected void handleAllResultNotifications(Vector resultNotifications) {
-			System.out.println("got " + resultNotifications.size() + " result notifs!");
+			callNextAgentInQueue();
 		}
 		
 		

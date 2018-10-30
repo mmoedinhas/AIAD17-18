@@ -8,6 +8,8 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.ContractNetInitiator;
+import util.RequiredSpecs;
+
 import org.json.simple.JSONObject;
 
 public class AgentClient extends Agent {
@@ -79,12 +81,8 @@ public class AgentClient extends Agent {
 			}
 
 			// create message content
-			JSONObject messageContent = new JSONObject();
-			messageContent.put("memoryNeeded", this.agent.memoryNeeded);
-			messageContent.put("cpuNeeded", this.agent.cpuNeeded);
-			messageContent.put("timeNeeded", this.agent.timeNeeded);
-
-			cfp.setContent(messageContent.toJSONString());
+			RequiredSpecs specs = new RequiredSpecs(this.agent.memoryNeeded,this.agent.cpuNeeded,this.agent.timeNeeded);
+			cfp.setContent(specs.toString());
 			v.add(cfp);
 			return v;
 		}

@@ -70,7 +70,7 @@ public class AgentSuperPC extends Agent {
 			
 			return reply;
 		}
-		
+				
 		/**
 		 * Creates reply to the proposal
 		 * @param accept
@@ -93,6 +93,19 @@ public class AgentSuperPC extends Agent {
 				return true;
 			}
 			return false;
+		}
+		
+		protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
+			System.out.println(myAgent.getLocalName() + " got a reject...");
+		}
+
+		protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
+			System.out.println(myAgent.getLocalName() + " got an accept!");
+			ACLMessage result = accept.createReply();
+			result.setPerformative(ACLMessage.INFORM);
+			result.setContent("this is the result");
+			
+			return result;
 		}
 		
 		

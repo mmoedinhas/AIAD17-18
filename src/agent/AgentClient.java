@@ -96,7 +96,26 @@ public class AgentClient extends Agent {
 			for (int i = 0; i < responses.size(); i++) {
 				System.out.println(((ACLMessage)responses.elementAt(i)).getContent());
 			}
+			processProposal(responses, acceptances);
 		}
+		
+		protected void processProposal(Vector responses, Vector acceptances){
+			System.out.println("im looking at my proposals");
+			for(int i=0; i<responses.size(); i++) {
+				ACLMessage msg = ((ACLMessage) responses.get(i)).createReply();
+				if(i % 2 == 0)
+					msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL); // OR NOT!
+				else
+					msg.setPerformative(ACLMessage.REJECT_PROPOSAL);
+				acceptances.add(msg);
+			}
+		}
+		
+		protected void handleAllResultNotifications(Vector resultNotifications) {
+			System.out.println("got " + resultNotifications.size() + " result notifs!");
+		}
+		
+		
 
 	}
 }

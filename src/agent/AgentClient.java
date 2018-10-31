@@ -107,6 +107,8 @@ public class AgentClient extends Agent {
 				JSONParser parser = new JSONParser();
 				JSONObject content;
 				double proposedPrice = 0;
+				int proposedWaitingTime = 0;
+				//UNICA PARTE QUE FALTA
 				
 				try {
 					content = (JSONObject) parser.parse(((ACLMessage) responses.get(i)).getContent());

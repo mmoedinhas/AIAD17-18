@@ -1,5 +1,8 @@
 package agent;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.json.simple.JSONObject;
 
@@ -7,6 +10,7 @@ import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 import jade.proto.ContractNetResponder;
 import util.RequiredSpecs;
+import util.Timer;
 import jade.lang.acl.MessageTemplate;
 
 public class AgentSuperPC extends Agent {
@@ -19,8 +23,12 @@ public class AgentSuperPC extends Agent {
 	private int cpu; // PC's cpu in MHz
 	private int memoryTaken; // PC's memory taken by programs
 	private int cpuTaken; // PC's cpu taken by programs
-	ConcurrentHashMap<String,RequiredSpecs> acceptedProposals = 
-			new ConcurrentHashMap<String, RequiredSpecs>(); //PC's accepted proposals with the name of the agent and the memory and cpu required by the agent
+	//PC's accepted proposals with the name of the agent and the memory and cpu required by the agent
+	private ConcurrentHashMap<String,RequiredSpecs> acceptedProposals = 
+			new ConcurrentHashMap<String, RequiredSpecs>(); 
+	
+	//pool to execute timer threads
+	private ScheduledExecutorService scheduledPool = Executors.newScheduledThreadPool(20);
 
 	public void setup() {
 		
@@ -42,6 +50,41 @@ public class AgentSuperPC extends Agent {
 		
 		this.memory = quirks[0];
 		this.cpu = quirks[1];
+	}
+	
+	/**
+	 * Allocates the specs needed for the client that accepted the proposal
+	 * @param specs
+	 * @param clientName
+	 */
+	public synchronized void allocateSpecs(RequiredSpecs specs,String clientName) {
+		setMemoryTaken(getMemoryTaken() + specs.getMemory() );
+		setCpuTaken(getCpuTaken() + specs.getCpu());
+		acceptedProposals.put(clientName, specs);
+	}
+	
+	/**
+	 * Releases cpu and memory being used by leaving client
+	 * @param clientName
+	 */
+	public synchronized void deallocateSpecs(String clientName) {
+		
+		RequiredSpecs proposalSpecs = acceptedProposals.get(clientName);
+		setMemoryTaken(getMemoryTaken() - proposalSpecs.getMemory() );
+		setCpuTaken(getCpuTaken() - proposalSpecs.getCpu());
+		acceptedProposals.remove(clientName);
+	}
+	
+	/**
+	 * 
+	 * @param specs
+	 * @param clientName
+	 */
+	private void startRunningClient(RequiredSpecs specs,String clientName) {
+		allocateSpecs(specs, clientName);
+		
+		Timer timer = new Timer(this,clientName);
+		this.scheduledPool.schedule(timer,specs.getTime(),TimeUnit.MILLISECONDS);
 	}
 	
 	class AnswerRequest extends ContractNetResponder {
@@ -91,44 +134,30 @@ public class AgentSuperPC extends Agent {
 		 */
 		protected boolean canAccept(RequiredSpecs specs, String sender){
 			if(superPC.getMemoryAvailable() > specs.getMemory() && superPC.getCpuAvailable() > specs.getCpu()){
-				allocateSpecs(specs,sender);
 				return true;
 			}
 			return false;
 		}
-		
-		/**
-		 * Allocates the specs needed when we accept a proposal
-		 * @param specs
-		 * @param sender
-		 */
-		private void allocateSpecs(RequiredSpecs specs,String sender) {
-			superPC.setMemoryTaken(superPC.getMemoryTaken() + specs.getMemory() );
-			superPC.setCpuTaken(superPC.getCpuTaken() + specs.getCpu());
-			superPC.acceptedProposals.put(sender, specs);
-		}
 
 		/**
-		 * Deallocates the specs when the client rejects our proposals
+		 * Handles the rejection of a proposal
 		 */
 		protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
 			System.out.println("sou um pc e fui rejeitado");
-			String clientName = reject.getSender().getName();
-			deallocateSpecs(clientName);
-			
 		}
-
-		private void deallocateSpecs(String clientName) {
-			
-			RequiredSpecs proposalSpecs = superPC.acceptedProposals.get(clientName);
-			superPC.setMemoryTaken(superPC.getMemoryTaken() - proposalSpecs.getMemory() );
-			superPC.setCpuTaken(superPC.getCpuTaken() - proposalSpecs.getCpu());
-			superPC.acceptedProposals.remove(clientName);
-			
-		}
-
+		
+		/**
+		 * Handles the acceptance of a proposal
+		 * Informs the client and starts running the client program in the superPC
+		 */
 		protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
 			System.out.println(myAgent.getLocalName() + " got an accept!");
+			
+			//Allocates space in superPC for client and starts timer
+			RequiredSpecs specs = new RequiredSpecs(cfp.getContent());
+			startRunningClient(specs, cfp.getSender().getName());
+			
+			// Creates reply to inform the client
 			ACLMessage result = accept.createReply();
 			result.setPerformative(ACLMessage.INFORM);
 			result.setContent("this is the result");

@@ -1,4 +1,10 @@
 package agent;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -27,7 +33,7 @@ public class AgentSuperPC extends Agent {
 	private int memoryTaken; // PC's memory taken by programs
 	private int cpuTaken; // PC's cpu taken by programs
 	//PC's accepted proposals with the name of the agent and the memory and cpu required by the agent
-	private ConcurrentHashMap<String,RequiredSpecs> acceptedProposals = 
+	private ConcurrentHashMap<String, RequiredSpecs> acceptedProposals = 
 			new ConcurrentHashMap<String, RequiredSpecs>(); 
 	
 	//pool to execute timer threads
@@ -88,7 +94,6 @@ public class AgentSuperPC extends Agent {
 	 */
 	private void startRunningClient(RequiredSpecs specs,String clientName) {
 		allocateSpecs(specs, clientName);
-		
 		Timer timer = new Timer(this,clientName);
 		this.scheduledPool.schedule(timer,specs.getTime(),TimeUnit.MILLISECONDS);
 	}
@@ -129,6 +134,7 @@ public class AgentSuperPC extends Agent {
 		private String createResponse(RequiredSpecs specs) {
 			JSONObject response = new JSONObject();
 			response.put("price", superPC.getPrice(specs));
+			response.put("waitingTime", getWaitingTime(specs));
 			return response.toJSONString();
 		}
 
@@ -148,10 +154,83 @@ public class AgentSuperPC extends Agent {
 		 * @param specs
 		 * @return 0 if can run immediately or time to be spent in queue
 		 */
-		protected int canRunImmediately(RequiredSpecs specs) {
+		protected int getWaitingTime(RequiredSpecs specs) {
 			//time to be spent in queue is time of people in queue + time of people in server
-			return 0;
+			
+			//get the specs of all waiting programs in a queue
+			ConcurrentLinkedQueue<RequiredSpecs> waitingSpecs = queue.getSpecs();
+			
+			//get the specs of all running programs in a vector
+			Vector<RequiredSpecs> runningPrograms = new Vector<RequiredSpecs>();
+			for (Entry<String, RequiredSpecs> entry : acceptedProposals.entrySet()) {
+			    runningPrograms.add(entry.getValue());
+			}
+			
+			Integer cpuTaken = superPC.getCpuTaken();
+			Integer memTaken = superPC.getMemoryTaken();
+			int maxCpu = superPC.getCpu();
+			int maxMem = superPC.getMemory();
+			
+			int totalTime = 0;
+			//checks if has space remaining
+			if(waitingSpecs.size() == 1 && maxCpu - cpuTaken >= specs.getCpu() && maxMem >= specs.getMemory()){
+				return 0;
+			}
+			
+			while(waitingSpecs.size() != 0){
+				int minTime = getMinTime(runningPrograms);
+				totalTime += minTime;
+				removeTimeFromRunningPrograms(runningPrograms, minTime);
+				removeEndedRunningPrograms(runningPrograms);
+				addProgramstoRunning(runningPrograms,waitingSpecs,maxCpu,cpuTaken,maxMem,memTaken);
+			}
+			
+			return totalTime;
 		}
+		
+		private void addProgramstoRunning(Vector<RequiredSpecs> runningPrograms, 
+				ConcurrentLinkedQueue<RequiredSpecs> waitingSpecs, int maxCpu, Integer cpuTaken, int maxMem, Integer memTaken) {
+			while(true){
+				int cpuNeeded = waitingSpecs.peek().getCpu();
+				int memNeeded = waitingSpecs.peek().getMemory();
+				if(maxCpu - cpuTaken > cpuNeeded &&  maxMem - memTaken > memNeeded){
+					RequiredSpecs specs = waitingSpecs.poll();
+					cpuTaken += specs.getCpu();
+					memTaken += specs.getMemory();
+					runningPrograms.addElement(specs);
+				}else{
+					return;
+				}
+			}
+			
+		}
+
+		protected int getMinTime(Vector<RequiredSpecs> runningPrograms){
+			int min = Integer.MAX_VALUE;
+			for (RequiredSpecs requiredSpecs : runningPrograms) {
+				if(requiredSpecs.getTime() < min)
+					min = requiredSpecs.getTime();
+			}
+			return min;
+		}
+		
+		protected void removeTimeFromRunningPrograms(Vector<RequiredSpecs> runningPrograms, int time){
+			int min = Integer.MAX_VALUE;
+			for (RequiredSpecs requiredSpecs : runningPrograms) {
+				requiredSpecs.setTime(requiredSpecs.getTime() - time);
+			}
+		}
+		
+		protected void removeEndedRunningPrograms(Vector<RequiredSpecs> runningPrograms){
+			int min = Integer.MAX_VALUE;
+			for (int i = 0; i <  runningPrograms.size(); i++) {
+				if(runningPrograms.elementAt(i).getTime() == 0){
+					runningPrograms.remove(i);
+					i--;
+				}	
+			}
+		}
+
 
 		/**
 		 * Handles the rejection of a proposal

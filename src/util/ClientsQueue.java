@@ -38,4 +38,22 @@ public class ClientsQueue {
 	public int getCurrentWaitTime() {
 		return this.currentWaitTime;
 	}
+	
+	public ConcurrentLinkedQueue<Object[]> getQueue(){
+		return queue;
+	}
+	
+	public ConcurrentLinkedQueue<RequiredSpecs> getSpecs(){
+		/*Object[] waitingQueue = queue.toArray();
+		RequiredSpecs[] specsQueue = new RequiredSpecs[waitingQueue.length];
+		for (int i = 0; i < specsQueue.length; i++) {
+			specsQueue[i] = (RequiredSpecs)((Object[])waitingQueue[i])[1];
+		}
+		return specsQueue;*/
+		ConcurrentLinkedQueue<RequiredSpecs> specsQueue = new ConcurrentLinkedQueue<RequiredSpecs>();
+		for (Object[] objects : queue) {
+			specsQueue.add((RequiredSpecs)objects[1]);
+		}
+		return specsQueue;
+	}
 }

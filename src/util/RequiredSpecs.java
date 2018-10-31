@@ -9,6 +9,12 @@ public class RequiredSpecs {
 	private int cpu;
 	private int time;
 	
+	public RequiredSpecs(){
+		this.memory = 0;
+		this.cpu = 0;
+		this.time = 0;
+	}
+	
 	public RequiredSpecs(int memory, int cpu, int time) {
 		this.memory = memory;
 		this.cpu = cpu;

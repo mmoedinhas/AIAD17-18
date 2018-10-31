@@ -12,8 +12,7 @@ import util.Config;
 public class StartApp {
 
 	/**
-	 * @param args
-	 *            [<configFileName>]
+	 * @param args [<configFileName>]
 	 * @throws InterruptedException
 	 **/
 	public static void main(String[] args) throws InterruptedException {

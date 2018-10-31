@@ -1,5 +1,6 @@
 package agent;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -9,6 +10,8 @@ import org.json.simple.JSONObject;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 import jade.proto.ContractNetResponder;
+import jade.wrapper.AgentController;
+import util.ClientsQueue;
 import util.RequiredSpecs;
 import util.Timer;
 import jade.lang.acl.MessageTemplate;
@@ -29,6 +32,9 @@ public class AgentSuperPC extends Agent {
 	
 	//pool to execute timer threads
 	private ScheduledExecutorService scheduledPool = Executors.newScheduledThreadPool(20);
+	
+	//client queue
+	private ClientsQueue queue = new ClientsQueue();
 
 	public void setup() {
 		
@@ -103,11 +109,11 @@ public class AgentSuperPC extends Agent {
 			System.out.println("tou a receber mensagem do " + cfp.getSender().getName());
 			ACLMessage reply = cfp.createReply();
 			RequiredSpecs specs = new RequiredSpecs(cfp.getContent());		
-			boolean accept = canAccept(specs,cfp.getSender().getName());
+			boolean accept = canAccept(specs);
 			
 			if(accept) {
 				reply.setPerformative(ACLMessage.PROPOSE);
-				reply.setContent(createResponse(accept,specs));
+				reply.setContent(createResponse(specs));
 			} else {
 				reply.setPerformative(ACLMessage.REFUSE);
 			}
@@ -120,11 +126,9 @@ public class AgentSuperPC extends Agent {
 		 * @param accept
 		 * @return reply to proposal
 		 */
-		private String createResponse(boolean accept,RequiredSpecs specs) {
+		private String createResponse(RequiredSpecs specs) {
 			JSONObject response = new JSONObject();
-			response.put("Accept", accept);
-			if(accept)
-				response.put("price", superPC.getPrice(specs));
+			response.put("price", superPC.getPrice(specs));
 			return response.toJSONString();
 		}
 
@@ -132,11 +136,21 @@ public class AgentSuperPC extends Agent {
 		 * Checks if we can accept the proposal
 		 * @return true if superPC has enough memory and cpu available
 		 */
-		protected boolean canAccept(RequiredSpecs specs, String sender){
-			if(superPC.getMemoryAvailable() > specs.getMemory() && superPC.getCpuAvailable() > specs.getCpu()){
+		protected boolean canAccept(RequiredSpecs specs){
+			if(superPC.getMemory() > specs.getMemory() && superPC.getCpu() > specs.getCpu()){
 				return true;
 			}
 			return false;
+		}
+		
+		/**
+		 * 
+		 * @param specs
+		 * @return 0 if can run immediately or time to be spent in queue
+		 */
+		protected int canRunImmediately(RequiredSpecs specs) {
+			//time to be spent in queue is time of people in queue + time of people in server
+			return 0;
 		}
 
 		/**

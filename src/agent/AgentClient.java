@@ -93,6 +93,7 @@ public class AgentClient extends Agent {
 			
 			double minPrice = Double.MAX_VALUE;
 			double minPriceIndex = -1;
+			boolean rejectedByAll = true;
 			
 			for(int i=0; i<responses.size(); i++) {
 	
@@ -100,6 +101,8 @@ public class AgentClient extends Agent {
 					System.out.println("Sou um cliente rejeitado :(");
 					continue;
 				}
+				
+				rejectedByAll = false;
 				
 				JSONParser parser = new JSONParser();
 				JSONObject content;
@@ -116,6 +119,11 @@ public class AgentClient extends Agent {
 					minPrice = proposedPrice;
 					minPriceIndex = i;
 				}
+			}
+			
+			if(rejectedByAll) {
+				callNextAgentInQueue();
+				return;
 			}
 			
 			for(int i=0; i<responses.size(); i++) {

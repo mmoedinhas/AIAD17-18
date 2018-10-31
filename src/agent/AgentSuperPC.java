@@ -179,7 +179,12 @@ public class AgentSuperPC extends Agent {
 	public double getFractionCpuTaken() {
 		return ((double) cpuTaken / cpu);
 	}
-
+	
+	/**
+	 * The price is higher for super PC's that have less memory and cpu occupied.
+	 * @param specs The specifications needed for the client program to run.
+	 * @return the price proposed by the super pc
+	 */
 	public double getPrice(RequiredSpecs specs){
 		double priceMemory = specs.getMemory()*this.pricePerMemoryUnit*(1 - getFractionMemoryTaken());
 		double priceCPU = specs.getCpu()*this.pricePerCpuUnit*(1 - getFractionCpuTaken());

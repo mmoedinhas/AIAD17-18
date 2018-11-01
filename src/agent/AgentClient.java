@@ -18,21 +18,17 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-public class AgentClient extends Agent {
+public abstract class AgentClient extends Agent {
 
-	private int serverNo; // number of servers available
-	private int memoryNeeded; // memory needed in KBs
-	private int cpuNeeded; // cpu power needed in Mhz
-	private int timeNeeded; // time needed in s
-	private String[] superPCsNames; // names of the superPCs
-	private ConcurrentLinkedQueue<AgentController> agentsQueue;
+	protected int serverNo; // number of servers available
+	protected int memoryNeeded; // memory needed in KBs
+	protected int cpuNeeded; // cpu power needed in Mhz
+	protected int timeNeeded; // time needed in s
+	protected String[] superPCsNames; // names of the superPCs
+	protected ConcurrentLinkedQueue<AgentController> agentsQueue;
 
 	public void setup() {
-
 		initClient();
-		// add test client behaviour
-		addBehaviour(new RequireSuperPC(this, new ACLMessage(ACLMessage.CFP)));
-
 	}
 
 	public void initClient() {
@@ -48,26 +44,14 @@ public class AgentClient extends Agent {
 		this.superPCsNames = superPCNames;
 	}
 
-	/*
-	 * public ACLMessage createCFP() {
-	 * 
-	 * }
-	 */
-
-	// http://jade.tilab.com/doc/api/jade/proto/ContractNetInitiator.html
-	public class RequireSuperPC extends ContractNetInitiator {
+	protected abstract class RequireSuperPC extends ContractNetInitiator {
 
 		private AgentClient agent;
 
 		public RequireSuperPC(AgentClient a, ACLMessage cfp) {
 			super(a, cfp);
 			this.agent = a;
-			// TODO Auto-generated constructor stub
 		}
-		// private int serverNo; //number of servers available
-		// private int memoryNeeded; //memory needed in KBs
-		// private int cpuNeeded; //cpu power needed in Mhz
-		// private int timeNeeded; //time needed in s
 
 		protected Vector prepareCfps(ACLMessage cfp) {
 			Vector v = new Vector();
@@ -89,56 +73,7 @@ public class AgentClient extends Agent {
 			processProposal(responses, acceptances);
 		}
 		
-		protected void processProposal(Vector responses, Vector acceptances) {
-			
-			double minPrice = Double.MAX_VALUE;
-			double minPriceIndex = -1;
-			boolean rejectedByAll = true;
-			
-			for(int i=0; i<responses.size(); i++) {
-	
-				if(((ACLMessage) responses.get(i)).getPerformative() == ACLMessage.REFUSE) {
-					System.out.println("Sou um cliente rejeitado :(");
-					continue;
-				}
-				
-				rejectedByAll = false;
-				
-				JSONParser parser = new JSONParser();
-				JSONObject content;
-				double proposedPrice = 0;
-				int proposedWaitingTime = 0;
-				//UNICA PARTE QUE FALTA
-				
-				try {
-					content = (JSONObject) parser.parse(((ACLMessage) responses.get(i)).getContent());
-					proposedPrice = ((double)content.get("price"));
-				} catch (ParseException e) {
-					e.printStackTrace();
-				}
-				
-				if(minPrice >= proposedPrice) {
-					minPrice = proposedPrice;
-					minPriceIndex = i;
-				}
-			}
-			
-			if(rejectedByAll) {
-				callNextAgentInQueue();
-				return;
-			}
-			
-			for(int i=0; i<responses.size(); i++) {
-				ACLMessage msg = ((ACLMessage) responses.get(i)).createReply();
-				
-				if(minPriceIndex == i)
-					msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-				else
-					msg.setPerformative(ACLMessage.REJECT_PROPOSAL);
-				
-				acceptances.add(msg);
-			}
-		}
+		protected abstract void processProposal(Vector responses, Vector acceptances);
 		
 		protected void callNextAgentInQueue() {
 			agent.agentsQueue.poll();

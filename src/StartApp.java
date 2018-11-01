@@ -1,5 +1,9 @@
 import jade.core.Runtime;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import generator.ClientArgsGenerator;
@@ -32,8 +36,7 @@ public class StartApp {
 
 		// Get configurations
 		Config config = new Config(configFileName);
-		int clientNo = Integer.parseInt(config.getProperty("clientsNo"));
-		System.out.println(clientNo);
+		int cheapClientNo = Integer.parseInt(config.getProperty("cheapClientsNo"));
 		int superPCNo = Integer.parseInt(config.getProperty("superPCNo"));
 		int[] memoryNeededBounds = { Integer.parseInt(config.getProperty("clientMemoryLower")),
 				Integer.parseInt(config.getProperty("clientMemoryUpper")) };
@@ -67,20 +70,33 @@ public class StartApp {
 			e.printStackTrace();
 			System.exit(1);
 		}
+		
 		// Launch client agents
+		
+		int clientNo = cheapClientNo; //+outros clientes
 
 		try {
 			ClientArgsGenerator clientsGen = new ClientArgsGenerator(clientNo, superPCNo, memoryNeededBounds,
 					cpuNeededBounds, timeNeededBounds);
 			Integer[][] clientsQuirks = clientsGen.generate();
 			
+			Vector<AgentController> agentsVector = new Vector<AgentController>();
 			ConcurrentLinkedQueue<AgentController> agentsQueue = new ConcurrentLinkedQueue<AgentController>();
-
-			for (int i = 0; i < clientsQuirks.length; i++) {
+			
+			int i = 0;
+			//create cheap clients
+			for(int j = 0; j < cheapClientNo; i++, j++) {
 				String clientName = "client" + i;
 				Object[] clientArgs = { clientsQuirks[i], superPCNames, agentsQueue};
-				AgentController ac = container.createNewAgent(clientName, "agent.AgentClient", clientArgs);
-				agentsQueue.add(ac);
+				AgentController ac = container.createNewAgent(clientName, "agent.AgentCheapClient", clientArgs);
+				agentsVector.add(ac);
+			}
+			
+			Collections.shuffle(agentsVector);
+			
+			i = 0;
+			for(; i < clientNo; i++) {
+				agentsQueue.add(agentsVector.elementAt(i));
 			}
 			
 			agentsQueue.peek().start();

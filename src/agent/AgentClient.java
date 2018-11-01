@@ -64,6 +64,7 @@ public abstract class AgentClient extends Agent {
 			RequiredSpecs specs = new RequiredSpecs(this.agent.memoryNeeded,this.agent.cpuNeeded,this.agent.timeNeeded);
 			cfp.setContent(specs.toString());
 			v.add(cfp);
+			System.out.println(this.agent.getName() + "mandei pedido");
 			return v;
 		}
 

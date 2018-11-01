@@ -151,14 +151,12 @@ public class AgentSuperPC extends Agent {
 			ACLMessage reply = cfp.createReply();
 			RequiredSpecs specs = new RequiredSpecs(cfp.getContent());		
 			boolean accept = canAccept(specs);
-			
 			if(accept) {
 				reply.setPerformative(ACLMessage.PROPOSE);
 				reply.setContent(createResponse(specs));
 			} else {
 				reply.setPerformative(ACLMessage.REFUSE);
 			}
-			
 			return reply;
 		}
 				
@@ -201,7 +199,7 @@ public class AgentSuperPC extends Agent {
 			for (Entry<String, RequiredSpecs> entry : acceptedProposals.entrySet()) {
 			    runningPrograms.add(entry.getValue());
 			}
-			
+			waitingSpecs.add(specs);
 			Integer cpuTaken = superPC.getCpuTaken();
 			Integer memTaken = superPC.getMemoryTaken();
 			int maxCpu = superPC.getCpu();
@@ -212,12 +210,13 @@ public class AgentSuperPC extends Agent {
 			if(waitingSpecs.size() == 1 && maxCpu - cpuTaken >= specs.getCpu() && maxMem - memTaken >= specs.getMemory()){
 				return 0;
 			}
-			
 			while(waitingSpecs.size() != 0){
 				int minTime = getMinTime(runningPrograms);
 				totalTime += minTime;
 				removeTimeFromRunningPrograms(runningPrograms, minTime);
-				removeEndedRunningPrograms(runningPrograms);
+				int[] resultTaken = removeEndedRunningPrograms(runningPrograms,cpuTaken,memTaken);
+				cpuTaken = resultTaken[0];
+				memTaken = resultTaken[1];
 				addProgramstoRunning(runningPrograms,waitingSpecs,maxCpu,cpuTaken,maxMem,memTaken);
 			}
 			
@@ -226,7 +225,7 @@ public class AgentSuperPC extends Agent {
 		
 		private void addProgramstoRunning(Vector<RequiredSpecs> runningPrograms, 
 				ConcurrentLinkedQueue<RequiredSpecs> waitingSpecs, int maxCpu, Integer cpuTaken, int maxMem, Integer memTaken) {
-			while(true){
+			while(true &&  waitingSpecs.size() > 0){
 				int cpuNeeded = waitingSpecs.peek().getCpu();
 				int memNeeded = waitingSpecs.peek().getMemory();
 				if(maxCpu - cpuTaken > cpuNeeded &&  maxMem - memTaken > memNeeded){
@@ -257,14 +256,17 @@ public class AgentSuperPC extends Agent {
 			}
 		}
 		
-		protected void removeEndedRunningPrograms(Vector<RequiredSpecs> runningPrograms){
+		protected int[] removeEndedRunningPrograms(Vector<RequiredSpecs> runningPrograms,Integer cpuTaken,Integer memTaken){
 			int min = Integer.MAX_VALUE;
 			for (int i = 0; i <  runningPrograms.size(); i++) {
 				if(runningPrograms.elementAt(i).getTime() == 0){
+					cpuTaken -= runningPrograms.elementAt(i).getCpu();
+					memTaken -= runningPrograms.elementAt(i).getMemory();
 					runningPrograms.remove(i);
 					i--;
 				}	
 			}
+			return new int[]{cpuTaken,memTaken};
 		}
 
 		/**

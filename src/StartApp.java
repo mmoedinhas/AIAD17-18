@@ -92,7 +92,7 @@ public class StartApp {
 				agentsVector.add(ac);
 			}
 			
-			Collections.shuffle(agentsVector);
+			//Collections.shuffle(agentsVector);
 			
 			i = 0;
 			for(; i < clientNo; i++) {

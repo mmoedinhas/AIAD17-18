@@ -65,7 +65,7 @@ public class AgentSuperPC extends Agent {
 	}
 	
 	/**
-	 * Allocates the specs needed for the client that accepted the proposal
+	 * Allocates the specs needed for the client that accepted the proposal and starts timer
 	 * @param specs
 	 * @param clientName
 	 */
@@ -73,6 +73,8 @@ public class AgentSuperPC extends Agent {
 		setMemoryTaken(getMemoryTaken() + specs.getMemory() );
 		setCpuTaken(getCpuTaken() + specs.getCpu());
 		acceptedProposals.put(clientName, specs);
+		Timer timer = new Timer(this,clientName);
+		this.scheduledPool.schedule(timer,specs.getTime(),TimeUnit.MILLISECONDS);
 	}
 	
 	/**
@@ -88,14 +90,48 @@ public class AgentSuperPC extends Agent {
 	}
 	
 	/**
-	 * 
+	 * Either starts running the client or puts it in queue
 	 * @param specs
 	 * @param clientName
 	 */
-	private void startRunningClient(RequiredSpecs specs,String clientName) {
-		allocateSpecs(specs, clientName);
-		Timer timer = new Timer(this,clientName);
-		this.scheduledPool.schedule(timer,specs.getTime(),TimeUnit.MILLISECONDS);
+	private String allocateClient(RequiredSpecs specs,String clientName) {
+		
+		if(canRun(specs)) {
+			allocateSpecs(specs, clientName);
+			return clientName + " started running now in " + this.getName();
+		} else {
+			queue.addClient(clientName, specs);
+			return clientName + " was added to queue of " + this.getName();
+		}
+		
+	}
+	
+	private synchronized void runClientsInQueue() {
+		
+		while(true){
+			int cpuNeeded = queue.peekClientSpecs().getCpu();
+			int memNeeded = queue.peekClientSpecs().getMemory();
+			String clientName = queue.peekClientName();
+			
+			if(cpu - cpuTaken > cpuNeeded &&  memory - memoryTaken > memNeeded){
+				RequiredSpecs specs = queue.pollClient().getSpecs();
+				allocateSpecs(specs,clientName);
+			}else{
+				return;
+			}
+		}
+	}
+	
+	public synchronized void prepareNextClient(String oldClientName) {
+		deallocateSpecs(oldClientName);
+		runClientsInQueue();
+	}
+	
+	private boolean canRun(RequiredSpecs specs) {
+		if(queue.size() == 0 && cpu - cpuTaken >= specs.getCpu() && memory - memoryTaken >= specs.getMemory()){
+			return true;
+		}
+		return false;
 	}
 	
 	class AnswerRequest extends ContractNetResponder {
@@ -173,7 +209,7 @@ public class AgentSuperPC extends Agent {
 			
 			int totalTime = 0;
 			//checks if has space remaining
-			if(waitingSpecs.size() == 1 && maxCpu - cpuTaken >= specs.getCpu() && maxMem >= specs.getMemory()){
+			if(waitingSpecs.size() == 1 && maxCpu - cpuTaken >= specs.getCpu() && maxMem - memTaken >= specs.getMemory()){
 				return 0;
 			}
 			
@@ -231,7 +267,6 @@ public class AgentSuperPC extends Agent {
 			}
 		}
 
-
 		/**
 		 * Handles the rejection of a proposal
 		 */
@@ -246,14 +281,14 @@ public class AgentSuperPC extends Agent {
 		protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
 			System.out.println(myAgent.getLocalName() + " got an accept!");
 			
-			//Allocates space in superPC for client and starts timer
+			//Allocates space in superPC or queue for client
 			RequiredSpecs specs = new RequiredSpecs(cfp.getContent());
-			startRunningClient(specs, cfp.getSender().getName());
+			String resultMsg = allocateClient(specs, cfp.getSender().getName());
 			
 			// Creates reply to inform the client
 			ACLMessage result = accept.createReply();
 			result.setPerformative(ACLMessage.INFORM);
-			result.setContent("this is the result");
+			result.setContent(resultMsg);
 			
 			return result;
 		}

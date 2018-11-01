@@ -15,7 +15,7 @@ public class Timer implements Runnable {
 	@Override
 	public void run() {
 		System.out.println("Time for " + clientName + " to leave the " + superPC.getName());
-		this.superPC.deallocateSpecs(clientName);
+		this.superPC.prepareNextClient(clientName);
 	}
 
 }

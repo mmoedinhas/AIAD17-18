@@ -89,6 +89,9 @@ public abstract class AgentClient extends Agent {
 		}
 		
 		protected void handleAllResultNotifications(Vector resultNotifications) {
+			for (Object result : resultNotifications) {
+				System.out.println(((ACLMessage)result).getContent());
+			}
 			callNextAgentInQueue();
 		}
 		

@@ -2,58 +2,77 @@ package util;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-// OPTIMIZE deeznuts
 public class ClientsQueue {
 	
-	private ConcurrentLinkedQueue<Object[]> queue;
+	private ConcurrentLinkedQueue<Client> queue;
 	private int currentWaitTime;
 	
+	public class Client {
+		private RequiredSpecs specs;
+		private String name;
+		
+		public Client(RequiredSpecs specs, String name) {
+			super();
+			this.specs = specs;
+			this.name = name;
+		}
+
+		public RequiredSpecs getSpecs() {
+			return specs;
+		}
+
+		public String getName() {
+			return name;
+		}
+	}
+	
 	public ClientsQueue() {
-		queue  = new ConcurrentLinkedQueue<Object[]>();
+		queue  = new ConcurrentLinkedQueue<Client>();
 		currentWaitTime = 0;
 	}
 	
 	public synchronized void addClient(String clientName, RequiredSpecs specs) {
-		Object[] client = {clientName,specs};
+		Client client = new Client(specs,clientName);
 		queue.add(client);
 		currentWaitTime += specs.getTime();
+		System.out.println("Added " + clientName + " to queue.");
  	}
 	
-	public synchronized void pollClient() {
-		Object[] client = queue.poll();
-		RequiredSpecs specs = (RequiredSpecs)client[1];
+	public synchronized Client pollClient() {
+		Client client = queue.poll();
+		RequiredSpecs specs = client.getSpecs();
 		currentWaitTime -= specs.getTime();
+		return client;
 	}
 	
 	public String peekClientName() {
-		Object[] client = queue.peek();
-		return (String)client[0];
+		Client client = queue.peek();
+		return client.getName();
 	}
 	
 	public RequiredSpecs peekClientSpecs() {
-		Object[] client = queue.peek();
-		return (RequiredSpecs)client[1];
+		Client client = queue.peek();
+		return client.getSpecs();
 	}
 	
 	public int getCurrentWaitTime() {
 		return this.currentWaitTime;
 	}
 	
-	public ConcurrentLinkedQueue<Object[]> getQueue(){
+	public ConcurrentLinkedQueue<Client> getQueue(){
 		return queue;
 	}
 	
 	public ConcurrentLinkedQueue<RequiredSpecs> getSpecs(){
-		/*Object[] waitingQueue = queue.toArray();
-		RequiredSpecs[] specsQueue = new RequiredSpecs[waitingQueue.length];
-		for (int i = 0; i < specsQueue.length; i++) {
-			specsQueue[i] = (RequiredSpecs)((Object[])waitingQueue[i])[1];
-		}
-		return specsQueue;*/
+
 		ConcurrentLinkedQueue<RequiredSpecs> specsQueue = new ConcurrentLinkedQueue<RequiredSpecs>();
-		for (Object[] objects : queue) {
-			specsQueue.add((RequiredSpecs)objects[1]);
+		for (Client client : queue) {
+			specsQueue.add(client.getSpecs());
 		}
 		return specsQueue;
+	}
+	
+	public int size() {
+		return queue.size();
 	}
 }

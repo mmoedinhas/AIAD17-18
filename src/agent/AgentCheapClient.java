@@ -20,7 +20,10 @@ public class AgentCheapClient extends AgentClient {
 		public RequireCheapSuperPC(AgentClient a, ACLMessage cfp) {
 			super(a, cfp);
 		}
-
+		
+		/**
+		 * Accepts the computer that offers the lower price.
+		 */
 		protected void processProposal(Vector responses, Vector acceptances) {
 
 			double minPrice = Double.MAX_VALUE;
@@ -39,7 +42,6 @@ public class AgentCheapClient extends AgentClient {
 				JSONParser parser = new JSONParser();
 				JSONObject content;
 				double proposedPrice = 0;
-				//int proposedWaitingTime = 0;
 
 				try {
 					content = (JSONObject) parser.parse(((ACLMessage) responses.get(i)).getContent());

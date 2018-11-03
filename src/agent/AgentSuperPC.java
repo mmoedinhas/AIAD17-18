@@ -197,7 +197,8 @@ public class AgentSuperPC extends Agent {
 			//get the specs of all running programs in a vector
 			Vector<RequiredSpecs> runningPrograms = new Vector<RequiredSpecs>();
 			for (Entry<String, RequiredSpecs> entry : acceptedProposals.entrySet()) {
-			    runningPrograms.add(entry.getValue());
+				RequiredSpecs copia = new RequiredSpecs(entry.getValue());
+			    runningPrograms.add(copia);
 			}
 			waitingSpecs.add(specs);
 			Integer cpuTaken = superPC.getCpuTaken();
@@ -213,33 +214,37 @@ public class AgentSuperPC extends Agent {
 			
 			// ta mal aqui
 			while(waitingSpecs.size() != 0){
+				//ve o tempo minimo para sair um programa de correr
 				int minTime = getMinTime(runningPrograms);
 				totalTime += minTime;
+				//retira o tempo minimo de todos os programas
 				removeTimeFromRunningPrograms(runningPrograms, minTime);
 				int[] resultTaken = removeEndedRunningPrograms(runningPrograms,cpuTaken,memTaken);
 				cpuTaken = resultTaken[0];
 				memTaken = resultTaken[1];
-				addProgramstoRunning(runningPrograms,waitingSpecs,maxCpu,cpuTaken,maxMem,memTaken);
+				resultTaken = addProgramstoRunning(runningPrograms,waitingSpecs,maxCpu,cpuTaken,maxMem,memTaken);
+				cpuTaken = resultTaken[0];
+				memTaken = resultTaken[1];
 			}
 			
 			return totalTime;
 		}
 		
-		private void addProgramstoRunning(Vector<RequiredSpecs> runningPrograms, 
-				ConcurrentLinkedQueue<RequiredSpecs> waitingSpecs, int maxCpu, Integer cpuTaken, int maxMem, Integer memTaken) {
-			while(true &&  waitingSpecs.size() > 0){
+		private int[] addProgramstoRunning(Vector<RequiredSpecs> runningPrograms, 
+				ConcurrentLinkedQueue<RequiredSpecs> waitingSpecs, int maxCpu, int cpuTaken, int maxMem, int memTaken) {
+			while(waitingSpecs.size() > 0){
 				int cpuNeeded = waitingSpecs.peek().getCpu();
 				int memNeeded = waitingSpecs.peek().getMemory();
-				if(maxCpu - cpuTaken > cpuNeeded &&  maxMem - memTaken > memNeeded){
+				if(maxCpu - cpuTaken >= cpuNeeded &&  maxMem - memTaken >= memNeeded){
 					RequiredSpecs specs = waitingSpecs.poll();
 					cpuTaken += specs.getCpu();
 					memTaken += specs.getMemory();
 					runningPrograms.addElement(specs);
 				}else{
-					return;
+					return new int[]{cpuTaken,memTaken};
 				}
 			}
-			
+			return new int[]{cpuTaken,memTaken};			
 		}
 
 		protected int getMinTime(Vector<RequiredSpecs> runningPrograms){
@@ -252,14 +257,12 @@ public class AgentSuperPC extends Agent {
 		}
 		
 		protected void removeTimeFromRunningPrograms(Vector<RequiredSpecs> runningPrograms, int time){
-			int min = Integer.MAX_VALUE;
 			for (RequiredSpecs requiredSpecs : runningPrograms) {
 				requiredSpecs.setTime(requiredSpecs.getTime() - time);
 			}
 		}
 		
 		protected int[] removeEndedRunningPrograms(Vector<RequiredSpecs> runningPrograms,Integer cpuTaken,Integer memTaken){
-			int min = Integer.MAX_VALUE;
 			for (int i = 0; i <  runningPrograms.size(); i++) {
 				if(runningPrograms.elementAt(i).getTime() == 0){
 					cpuTaken -= runningPrograms.elementAt(i).getCpu();

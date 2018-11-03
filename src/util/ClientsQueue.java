@@ -67,7 +67,8 @@ public class ClientsQueue {
 
 		ConcurrentLinkedQueue<RequiredSpecs> specsQueue = new ConcurrentLinkedQueue<RequiredSpecs>();
 		for (Client client : queue) {
-			specsQueue.add(client.getSpecs());
+			RequiredSpecs copia = new RequiredSpecs(client.getSpecs());
+			specsQueue.add(copia);
 		}
 		return specsQueue;
 	}

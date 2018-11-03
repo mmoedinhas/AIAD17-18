@@ -34,6 +34,12 @@ public class RequiredSpecs {
 			e.printStackTrace();
 		}
 	}
+	
+	public RequiredSpecs(RequiredSpecs specs) {
+		this.memory = specs.getMemory();
+		this.cpu = specs.getCpu();
+		this.time = specs.getTime();
+	}
 
 	@Override
 	public String toString() {

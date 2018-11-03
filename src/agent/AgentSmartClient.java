@@ -8,26 +8,30 @@ import org.json.simple.parser.ParseException;
 
 import jade.lang.acl.ACLMessage;
 
-public class AgentInAHurryClient extends AgentClient {
-	
+public class AgentSmartClient extends AgentClient {
+
 	public void setup() {
 		super.setup();
-		addBehaviour(new RequireFastQueueSuperPC(this, new ACLMessage(ACLMessage.CFP)));
+		addBehaviour(new RequireBestSuperPC(this, new ACLMessage(ACLMessage.CFP)));
 	}
 
-	protected class RequireFastQueueSuperPC extends RequireSuperPC {
+	protected class RequireBestSuperPC extends RequireSuperPC {
 
-		public RequireFastQueueSuperPC(AgentClient a, ACLMessage cfp) {
+		public RequireBestSuperPC(AgentClient a, ACLMessage cfp) {
 			super(a, cfp);
 		}
 		
 		/**
-		 * Accepts the computer that offers the least queue time.
+		 * Accepts the computer that offers the combination between lower price and queue time.
 		 */
 		protected void processProposal(Vector responses, Vector acceptances) {
-
-			double minTime = Double.MAX_VALUE;
-			double minTimeIndex = -1;
+			
+			//ve o mais barato
+			//se o mais barato tiver queue, ve se outros nao tem queue
+			//se todos tiverem queue, escolher o com menor queue
+			
+			double minPrice = Double.MAX_VALUE;
+			double minPriceIndex = -1;
 			boolean rejectedByAll = true;
 
 			for (int i = 0; i < responses.size(); i++) {
@@ -41,20 +45,18 @@ public class AgentInAHurryClient extends AgentClient {
 
 				JSONParser parser = new JSONParser();
 				JSONObject content;
-				int proposedWaitingTime = 0;
+				double proposedPrice = 0;
 
 				try {
 					content = (JSONObject) parser.parse(((ACLMessage) responses.get(i)).getContent());
-					proposedWaitingTime = ((Long) content.get("waitingTime")).intValue();
-					String senderName = ((ACLMessage)responses.get(i)).getSender().getName();
-					System.out.println(senderName + " offered me a waiting time = " + proposedWaitingTime);
+					proposedPrice = ((double) content.get("price"));
 				} catch (ParseException e) {
 					e.printStackTrace();
 				}
 
-				if (minTime >= proposedWaitingTime) {
-					minTime = proposedWaitingTime;
-					minTimeIndex = i;
+				if (minPrice >= proposedPrice) {
+					minPrice = proposedPrice;
+					minPriceIndex = i;
 				}
 			}
 
@@ -66,7 +68,7 @@ public class AgentInAHurryClient extends AgentClient {
 			for (int i = 0; i < responses.size(); i++) {
 				ACLMessage msg = ((ACLMessage) responses.get(i)).createReply();
 
-				if (minTimeIndex == i)
+				if (minPriceIndex == i)
 					msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
 				else
 					msg.setPerformative(ACLMessage.REJECT_PROPOSAL);
@@ -75,4 +77,5 @@ public class AgentInAHurryClient extends AgentClient {
 			}
 		}
 	}
+
 }

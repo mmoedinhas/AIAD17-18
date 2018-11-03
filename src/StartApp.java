@@ -53,10 +53,16 @@ public class StartApp {
 					Integer.parseInt(config.getProperty("superPCMemoryUpper")) };
 			int[] cpuAvailableBounds = { Integer.parseInt(config.getProperty("superPCCPULower")),
 					Integer.parseInt(config.getProperty("superPCCPUUpper")) };
+			double[] pricePerMemoryUnitBounds = { Double.parseDouble(config.getProperty("pricePerMemoryUnitLower")),
+					Double.parseDouble(config.getProperty("pricePerMemoryUnitUpper")) };
+			double[] pricePerCpuUnitBounds = { Double.parseDouble(config.getProperty("pricePerCpuUnitLower")),
+					Double.parseDouble(config.getProperty("pricePerCpuUnitUpper")) };
+			double[] pricePerSecondBounds = { Double.parseDouble(config.getProperty("pricePerSecondLower")),
+					Double.parseDouble(config.getProperty("pricePerSecondUpper")) };
 			SuperPCArgsGenerator superPcsGen = new SuperPCArgsGenerator(superPCNo, memoryAvailableBounds,
-					cpuAvailableBounds);
+					cpuAvailableBounds,pricePerMemoryUnitBounds,pricePerCpuUnitBounds,pricePerSecondBounds);
 
-			Integer[][] superPcsQuirks = superPcsGen.generate();
+			Object[][] superPcsQuirks = superPcsGen.generate();
 
 			for (int i = 0; i < superPcsQuirks.length; i++) {
 				String superPCName = "superPC" + i;
@@ -85,6 +91,7 @@ public class StartApp {
 			ConcurrentLinkedQueue<AgentController> agentsQueue = new ConcurrentLinkedQueue<AgentController>();
 			
 			int i = 0;
+			
 			//create cheap clients
 			for(int j = 0; j < cheapClientNo; i++, j++) {
 				String clientName = "client" + i;

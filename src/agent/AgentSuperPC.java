@@ -24,9 +24,9 @@ import jade.lang.acl.MessageTemplate;
 
 public class AgentSuperPC extends Agent {
 	
-	private final static double pricePerMemoryUnit = 0.2; //1MB is 0.2 euro
-	private final static double pricePerCpuUnit = 1.2; //1Mhz of processing power is 1.2 euro
-	private final static double pricePerSecond = 0.01; //1 second of usage is 0.01 euro
+	private double pricePerMemoryUnit; //1MB is x euro
+	private double pricePerCpuUnit; //1Mhz of processing power is x euro
+	private double pricePerSecond; //1 second of usage is x euro
 	
 	private int memory; // PC's memory in kB
 	private int cpu; // PC's cpu in MHz
@@ -58,10 +58,15 @@ public class AgentSuperPC extends Agent {
 		
 		Object[] args = getArguments();
 
-		Integer[] quirks = (Integer[])args[1];
+		Object[] quirks = (Object[])args[1];
 		
-		this.memory = quirks[0];
-		this.cpu = quirks[1];
+		this.memory = (Integer)quirks[0];
+		this.cpu = (Integer)quirks[1];
+		this.pricePerMemoryUnit = (Double)quirks[2];
+		this.pricePerCpuUnit = (Double)quirks[3];
+		this.pricePerSecond = (Double)quirks[4];
+		
+		System.out.println(this);
 	}
 	
 	/**
@@ -106,6 +111,13 @@ public class AgentSuperPC extends Agent {
 		
 	}
 	
+	@Override
+	public String toString() {
+		return "Init " + this.getName() + " with " + this.memory + "MB of memory, " + this.cpu + "MHz of cpu processing power, "
+				+ this.pricePerMemoryUnit + "€ per memory unit, " + this.pricePerCpuUnit + "€ per cpu unit, " + this.pricePerSecond
+				+ "€ per time unit.";
+	}
+
 	private synchronized void runClientsInQueue() {
 		
 		while(true){

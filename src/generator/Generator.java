@@ -7,5 +7,10 @@ public abstract class Generator {
 		Random rand = new Random();
 		return rand.nextInt((max - min) + 1) + min;
 	}
+	
+	public double generate(double min, double max) {
+		Random rand = new Random();
+		return rand.nextDouble()*(max - min) + min;
+	}
 
 }

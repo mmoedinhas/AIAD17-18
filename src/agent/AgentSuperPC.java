@@ -212,7 +212,6 @@ public class AgentSuperPC extends Agent {
 				return 0;
 			}
 			
-			// ta mal aqui
 			while(waitingSpecs.size() != 0){
 				//ve o tempo minimo para sair um programa de correr
 				int minTime = getMinTime(runningPrograms);

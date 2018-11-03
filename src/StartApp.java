@@ -37,6 +37,7 @@ public class StartApp {
 		// Get configurations
 		Config config = new Config(configFileName);
 		int cheapClientNo = Integer.parseInt(config.getProperty("cheapClientsNo"));
+		int inAHurryClientNo = Integer.parseInt(config.getProperty("inAHurryClientsNo"));
 		int superPCNo = Integer.parseInt(config.getProperty("superPCNo"));
 		int[] memoryNeededBounds = { Integer.parseInt(config.getProperty("clientMemoryLower")),
 				Integer.parseInt(config.getProperty("clientMemoryUpper")) };
@@ -73,7 +74,7 @@ public class StartApp {
 		
 		// Launch client agents
 		
-		int clientNo = cheapClientNo; //+outros clientes
+		int clientNo = cheapClientNo + inAHurryClientNo; //+outros clientes
 
 		try {
 			ClientArgsGenerator clientsGen = new ClientArgsGenerator(clientNo, superPCNo, memoryNeededBounds,
@@ -89,6 +90,14 @@ public class StartApp {
 				String clientName = "client" + i;
 				Object[] clientArgs = { clientsQuirks[i], superPCNames, agentsQueue};
 				AgentController ac = container.createNewAgent(clientName, "agent.AgentCheapClient", clientArgs);
+				agentsVector.add(ac);
+			}
+			
+			//create clients in a hurry
+			for(int j = 0; j < inAHurryClientNo; i++, j++) {
+				String clientName = "client" + i;
+				Object[] clientArgs = { clientsQuirks[i], superPCNames, agentsQueue};
+				AgentController ac = container.createNewAgent(clientName, "agent.AgentInAHurryClient", clientArgs);
 				agentsVector.add(ac);
 			}
 			

@@ -210,6 +210,8 @@ public class AgentSuperPC extends Agent {
 			if(waitingSpecs.size() == 1 && maxCpu - cpuTaken >= specs.getCpu() && maxMem - memTaken >= specs.getMemory()){
 				return 0;
 			}
+			
+			// ta mal aqui
 			while(waitingSpecs.size() != 0){
 				int minTime = getMinTime(runningPrograms);
 				totalTime += minTime;

@@ -27,7 +27,7 @@ public class AgentInAHurryClient extends AgentClient {
 		protected void processProposal(Vector responses, Vector acceptances) {
 
 			double minTime = Double.MAX_VALUE;
-			double minTimeIndex = -1;
+			int minTimeIndex = -1;
 			boolean rejectedByAll = true;
 
 			for (int i = 0; i < responses.size(); i++) {

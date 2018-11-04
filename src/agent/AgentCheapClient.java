@@ -27,7 +27,7 @@ public class AgentCheapClient extends AgentClient {
 		protected void processProposal(Vector responses, Vector acceptances) {
 
 			double minPrice = Double.MAX_VALUE;
-			double minPriceIndex = -1;
+			int minPriceIndex = -1;
 			boolean rejectedByAll = true;
 
 			for (int i = 0; i < responses.size(); i++) {

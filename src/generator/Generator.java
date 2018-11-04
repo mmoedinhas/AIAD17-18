@@ -1,7 +1,7 @@
 package generator;
 import java.util.Random;
 
-public abstract class Generator {
+public class Generator {
 	
 	public int generate(int min, int max) {
 		Random rand = new Random();

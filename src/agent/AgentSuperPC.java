@@ -23,10 +23,11 @@ import util.Timer;
 import jade.lang.acl.MessageTemplate;
 
 public class AgentSuperPC extends Agent {
-	
+	private final double minPrice = 5;
 	private double pricePerMemoryUnit; //1MB is x euro
 	private double pricePerCpuUnit; //1Mhz of processing power is x euro
 	private double pricePerSecond; //1 second of usage is x euro
+	private double discountPerWatingSecond;
 	
 	private int memory; // PC's memory in kB
 	private int cpu; // PC's cpu in MHz
@@ -65,6 +66,7 @@ public class AgentSuperPC extends Agent {
 		this.pricePerMemoryUnit = (Double)quirks[2];
 		this.pricePerCpuUnit = (Double)quirks[3];
 		this.pricePerSecond = (Double)quirks[4];
+		this.discountPerWatingSecond = (Double)quirks[5];
 		
 		System.out.println(this);
 	}
@@ -146,6 +148,17 @@ public class AgentSuperPC extends Agent {
 		return false;
 	}
 	
+	/**
+	 * Checks if we can accept the proposal
+	 * @return true if superPC has enough memory and cpu available
+	 */
+	protected boolean canAccept(RequiredSpecs specs){
+		if(getMemory() > specs.getMemory() && getCpu() > specs.getCpu()){
+			return true;
+		}
+		return false;
+	}
+	
 	class AnswerRequest extends ContractNetResponder {
 		
 		AgentSuperPC superPC;
@@ -178,20 +191,10 @@ public class AgentSuperPC extends Agent {
 		 */
 		private String createResponse(RequiredSpecs specs) {
 			JSONObject response = new JSONObject();
-			response.put("price", superPC.getPrice(specs));
-			response.put("waitingTime", getWaitingTime(specs));
+			int waitingTime = getWaitingTime(specs);
+			response.put("waitingTime", waitingTime);
+			response.put("price", superPC.getPrice(specs,waitingTime));
 			return response.toJSONString();
-		}
-
-		/**
-		 * Checks if we can accept the proposal
-		 * @return true if superPC has enough memory and cpu available
-		 */
-		protected boolean canAccept(RequiredSpecs specs){
-			if(superPC.getMemory() > specs.getMemory() && superPC.getCpu() > specs.getCpu()){
-				return true;
-			}
-			return false;
 		}
 		
 		/**
@@ -357,9 +360,22 @@ public class AgentSuperPC extends Agent {
 	 * @param specs The specifications needed for the client program to run.
 	 * @return the price proposed by the super pc
 	 */
-	public double getPrice(RequiredSpecs specs){
-		double priceMemory = specs.getMemory()*this.pricePerMemoryUnit*(1 - getFractionMemoryTaken());
-		double priceCPU = specs.getCpu()*this.pricePerCpuUnit*(1 - getFractionCpuTaken());
-		return (priceMemory + priceCPU)*specs.getTime()*this.pricePerSecond;
+	public double getPrice(RequiredSpecs specs, int waitingTime){
+		double priceMemory;
+		double priceCPU;
+		if(canRun(specs)){
+			priceMemory = specs.getMemory()*this.pricePerMemoryUnit*(1 - getFractionMemoryTaken());
+			priceCPU = specs.getCpu()*this.pricePerCpuUnit*(1 - getFractionCpuTaken());
+		}else{
+			priceMemory = specs.getMemory()*this.pricePerMemoryUnit - this.discountPerWatingSecond * waitingTime;
+			priceCPU = specs.getCpu()*this.pricePerCpuUnit - this.discountPerWatingSecond * waitingTime;
+		}
+		double finalPrice = (priceMemory + priceCPU)*specs.getTime()*this.pricePerSecond;
+		if(finalPrice <= 0){
+			return this.minPrice;
+		}
+		else{
+			return (priceMemory + priceCPU)*specs.getTime()*this.pricePerSecond;
+		}
 	}
 }

@@ -60,8 +60,10 @@ public class StartApp {
 					Double.parseDouble(config.getProperty("pricePerCpuUnitUpper")) };
 			double[] pricePerSecondBounds = { Double.parseDouble(config.getProperty("pricePerSecondLower")),
 					Double.parseDouble(config.getProperty("pricePerSecondUpper")) };
+			double[] discountPerWatingSecondBounds = { Double.parseDouble(config.getProperty("discountPerWatingSecondLower")),
+					Double.parseDouble(config.getProperty("discountPerWatingSecondUpper")) };
 			SuperPCArgsGenerator superPcsGen = new SuperPCArgsGenerator(superPCNo, memoryAvailableBounds,
-					cpuAvailableBounds,pricePerMemoryUnitBounds,pricePerCpuUnitBounds,pricePerSecondBounds);
+					cpuAvailableBounds,pricePerMemoryUnitBounds,pricePerCpuUnitBounds,pricePerSecondBounds,discountPerWatingSecondBounds);
 
 			Object[][] superPcsQuirks = superPcsGen.generate();
 

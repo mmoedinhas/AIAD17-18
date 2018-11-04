@@ -1,5 +1,6 @@
 package agent;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -44,9 +45,15 @@ public abstract class AgentClient extends Agent {
 		this.superPCsNames = superPCNames;
 	}
 
+	@Override
+	public String toString() {
+		return this.getName() + "[serverNo=" + serverNo + ", memoryNeeded=" + memoryNeeded + ", cpuNeeded=" + cpuNeeded
+				+ ", timeNeeded=" + timeNeeded;
+	}
+
 	protected abstract class RequireSuperPC extends ContractNetInitiator {
 
-		private AgentClient agent;
+		protected AgentClient agent;
 
 		public RequireSuperPC(AgentClient a, ACLMessage cfp) {
 			super(a, cfp);
@@ -64,13 +71,11 @@ public abstract class AgentClient extends Agent {
 			RequiredSpecs specs = new RequiredSpecs(this.agent.memoryNeeded,this.agent.cpuNeeded,this.agent.timeNeeded);
 			cfp.setContent(specs.toString());
 			v.add(cfp);
-			System.out.println(this.agent.getName() + "mandei pedido");
+			System.out.println(this.agent + " sent a request");
 			return v;
 		}
 
 		protected void handleAllResponses(Vector responses, Vector acceptances) {
-
-			System.out.println("got " + responses.size() + " responses!");
 			processProposal(responses, acceptances);
 		}
 		
@@ -96,7 +101,31 @@ public abstract class AgentClient extends Agent {
 			callNextAgentInQueue();
 		}
 		
+		protected String getRejectionMsg(ACLMessage response) {
+			String senderName = response.getSender().getName();
+			return this.agent.getName() + " was rejected by " + senderName;
+		}
 		
+		protected String getProposalMessage(ACLMessage response) {
+			String senderName = response.getSender().getName();
+			
+			JSONParser parser = new JSONParser();
+			JSONObject content;
+			int proposedWaitingTime = 0;
+			double proposedPrice = 0;
+			
+			try {
+				content = (JSONObject) parser.parse(response.getContent());
+				proposedWaitingTime = ((Long) content.get("waitingTime")).intValue();
+				proposedPrice = (Double) content.get("price");
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			
+			String msg = this.agent.getName() + ": " + 
+					senderName + " offered me price=" + proposedPrice + " and waitingTime=" + proposedWaitingTime;
+			return msg;
+		}
 
 	}
 }

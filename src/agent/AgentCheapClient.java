@@ -15,6 +15,11 @@ public class AgentCheapClient extends AgentClient {
 		addBehaviour(new RequireCheapSuperPC(this, new ACLMessage(ACLMessage.CFP)));
 	}
 
+	@Override
+	public String toString() {
+		return super.toString() + "]";
+	}
+
 	protected class RequireCheapSuperPC extends RequireSuperPC {
 
 		public RequireCheapSuperPC(AgentClient a, ACLMessage cfp) {
@@ -33,7 +38,7 @@ public class AgentCheapClient extends AgentClient {
 			for (int i = 0; i < responses.size(); i++) {
 
 				if (((ACLMessage) responses.get(i)).getPerformative() == ACLMessage.REFUSE) {
-					System.out.println("Sou um cliente rejeitado :(");
+					System.out.println(getRejectionMsg((ACLMessage) responses.get(i)));
 					continue;
 				}
 
@@ -54,6 +59,8 @@ public class AgentCheapClient extends AgentClient {
 					minPrice = proposedPrice;
 					minPriceIndex = i;
 				}
+				
+				System.out.println(getProposalMessage((ACLMessage) responses.get(i)));
 			}
 
 			if (rejectedByAll) {

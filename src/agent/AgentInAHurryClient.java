@@ -15,6 +15,11 @@ public class AgentInAHurryClient extends AgentClient {
 		addBehaviour(new RequireFastQueueSuperPC(this, new ACLMessage(ACLMessage.CFP)));
 	}
 
+	@Override
+	public String toString() {
+		return super.toString() + "]";
+	}
+
 	protected class RequireFastQueueSuperPC extends RequireSuperPC {
 
 		public RequireFastQueueSuperPC(AgentClient a, ACLMessage cfp) {
@@ -33,7 +38,7 @@ public class AgentInAHurryClient extends AgentClient {
 			for (int i = 0; i < responses.size(); i++) {
 
 				if (((ACLMessage) responses.get(i)).getPerformative() == ACLMessage.REFUSE) {
-					System.out.println("Sou um cliente rejeitado :(");
+					System.out.println(getRejectionMsg((ACLMessage) responses.get(i)));
 					continue;
 				}
 
@@ -46,8 +51,6 @@ public class AgentInAHurryClient extends AgentClient {
 				try {
 					content = (JSONObject) parser.parse(((ACLMessage) responses.get(i)).getContent());
 					proposedWaitingTime = ((Long) content.get("waitingTime")).intValue();
-					String senderName = ((ACLMessage)responses.get(i)).getSender().getName();
-					System.out.println(senderName + " offered me a waiting time = " + proposedWaitingTime);
 				} catch (ParseException e) {
 					e.printStackTrace();
 				}
@@ -56,6 +59,8 @@ public class AgentInAHurryClient extends AgentClient {
 					minTime = proposedWaitingTime;
 					minTimeIndex = i;
 				}
+				
+				System.out.println(getProposalMessage((ACLMessage) responses.get(i)));
 			}
 
 			if (rejectedByAll) {

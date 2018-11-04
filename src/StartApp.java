@@ -38,6 +38,7 @@ public class StartApp {
 		Config config = new Config(configFileName);
 		int cheapClientNo = Integer.parseInt(config.getProperty("cheapClientsNo"));
 		int inAHurryClientNo = Integer.parseInt(config.getProperty("inAHurryClientsNo"));
+		int smartClientNo = Integer.parseInt(config.getProperty("smartClientsNo"));
 		int superPCNo = Integer.parseInt(config.getProperty("superPCNo"));
 		int[] memoryNeededBounds = { Integer.parseInt(config.getProperty("clientMemoryLower")),
 				Integer.parseInt(config.getProperty("clientMemoryUpper")) };
@@ -80,7 +81,7 @@ public class StartApp {
 		
 		// Launch client agents
 		
-		int clientNo = cheapClientNo + inAHurryClientNo; //+outros clientes
+		int clientNo = cheapClientNo + inAHurryClientNo + smartClientNo;
 
 		try {
 			ClientArgsGenerator clientsGen = new ClientArgsGenerator(clientNo, superPCNo, memoryNeededBounds,
@@ -94,7 +95,7 @@ public class StartApp {
 			
 			//create cheap clients
 			for(int j = 0; j < cheapClientNo; i++, j++) {
-				String clientName = "client" + i;
+				String clientName = "cheapClient" + i;
 				Object[] clientArgs = { clientsQuirks[i], superPCNames, agentsQueue};
 				AgentController ac = container.createNewAgent(clientName, "agent.AgentCheapClient", clientArgs);
 				agentsVector.add(ac);
@@ -102,9 +103,17 @@ public class StartApp {
 			
 			//create clients in a hurry
 			for(int j = 0; j < inAHurryClientNo; i++, j++) {
-				String clientName = "client" + i;
+				String clientName = "inAHurryClient" + i;
 				Object[] clientArgs = { clientsQuirks[i], superPCNames, agentsQueue};
 				AgentController ac = container.createNewAgent(clientName, "agent.AgentInAHurryClient", clientArgs);
+				agentsVector.add(ac);
+			}
+			
+			//create smart clients
+			for(int j = 0; j < smartClientNo; i++, j++) {
+				String clientName = "smartClient" + i;
+				Object[] clientArgs = { clientsQuirks[i], superPCNames, agentsQueue};
+				AgentController ac = container.createNewAgent(clientName, "agent.AgentSmartClient", clientArgs);
 				agentsVector.add(ac);
 			}
 			

@@ -159,7 +159,6 @@ public class AgentSuperPC extends Agent {
 		 * Handle received cfp message
 		 */
 		protected ACLMessage handleCfp(ACLMessage cfp) {
-			System.out.println("tou a receber mensagem do " + cfp.getSender().getName());
 			ACLMessage reply = cfp.createReply();
 			RequiredSpecs specs = new RequiredSpecs(cfp.getContent());		
 			boolean accept = canAccept(specs);
@@ -288,16 +287,14 @@ public class AgentSuperPC extends Agent {
 		/**
 		 * Handles the rejection of a proposal
 		 */
-		protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
-			System.out.println("sou um pc e fui rejeitado");
-		}
+		protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {}
 		
 		/**
 		 * Handles the acceptance of a proposal
 		 * Informs the client and starts running the client program in the superPC
 		 */
 		protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
-			System.out.println(myAgent.getLocalName() + " got an accept!");
+			System.out.println(myAgent.getLocalName() + " was accepted by " + accept.getSender().getName());
 			
 			//Allocates space in superPC or queue for client
 			RequiredSpecs specs = new RequiredSpecs(cfp.getContent());

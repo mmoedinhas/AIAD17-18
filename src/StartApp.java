@@ -36,6 +36,7 @@ public class StartApp {
 
 		// Get configurations
 		Config config = new Config(configFileName);
+		String random=config.getProperty("shuffle");
 		int cheapClientNo = Integer.parseInt(config.getProperty("cheapClientsNo"));
 		int inAHurryClientNo = Integer.parseInt(config.getProperty("inAHurryClientsNo"));
 		int smartClientNo = Integer.parseInt(config.getProperty("smartClientsNo"));
@@ -118,9 +119,10 @@ public class StartApp {
 				AgentController ac = container.createNewAgent(clientName, "agent.AgentSmartClient", clientArgs);
 				agentsVector.add(ac);
 			}
-			
-			//Collections.shuffle(agentsVector);
-			
+			System.out.println(random);
+			if(random.compareTo("true") == 0)
+				Collections.shuffle(agentsVector);
+
 			i = 0;
 			for(; i < clientNo; i++) {
 				agentsQueue.add(agentsVector.elementAt(i));

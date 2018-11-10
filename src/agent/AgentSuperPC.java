@@ -34,7 +34,7 @@ public class AgentSuperPC extends Agent {
 	private int memoryTaken; // PC's memory taken by programs
 	private int cpuTaken; // PC's cpu taken by programs
 	//PC's accepted proposals with the name of the agent and the memory and cpu required by the agent
-	private ConcurrentHashMap<String, RequiredSpecs> acceptedProposals = 
+	private ConcurrentHashMap<String, RequiredSpecs> myRunningPrograms = 
 			new ConcurrentHashMap<String, RequiredSpecs>(); 
 	
 	//pool to execute timer threads
@@ -79,7 +79,7 @@ public class AgentSuperPC extends Agent {
 	public synchronized void allocateSpecs(RequiredSpecs specs,String clientName) {
 		setMemoryTaken(getMemoryTaken() + specs.getMemory() );
 		setCpuTaken(getCpuTaken() + specs.getCpu());
-		acceptedProposals.put(clientName, specs);
+		myRunningPrograms.put(clientName, specs);
 		Timer timer = new Timer(this,clientName);
 		this.scheduledPool.schedule(timer,specs.getTime(),TimeUnit.MILLISECONDS);
 	}
@@ -90,10 +90,10 @@ public class AgentSuperPC extends Agent {
 	 */
 	public synchronized void deallocateSpecs(String clientName) {
 		
-		RequiredSpecs proposalSpecs = acceptedProposals.get(clientName);
+		RequiredSpecs proposalSpecs = myRunningPrograms.get(clientName);
 		setMemoryTaken(getMemoryTaken() - proposalSpecs.getMemory() );
 		setCpuTaken(getCpuTaken() - proposalSpecs.getCpu());
-		acceptedProposals.remove(clientName);
+		myRunningPrograms.remove(clientName);
 	}
 	
 	/**
@@ -210,7 +210,7 @@ public class AgentSuperPC extends Agent {
 			
 			//get the specs of all running programs in a vector
 			Vector<RequiredSpecs> runningPrograms = new Vector<RequiredSpecs>();
-			for (Entry<String, RequiredSpecs> entry : acceptedProposals.entrySet()) {
+			for (Entry<String, RequiredSpecs> entry : myRunningPrograms.entrySet()) {
 				RequiredSpecs copia = new RequiredSpecs(entry.getValue());
 			    runningPrograms.add(copia);
 			}

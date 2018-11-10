@@ -119,7 +119,7 @@ public class StartApp {
 				AgentController ac = container.createNewAgent(clientName, "agent.AgentSmartClient", clientArgs);
 				agentsVector.add(ac);
 			}
-			System.out.println(random);
+
 			if(random.compareTo("true") == 0)
 				Collections.shuffle(agentsVector);
 

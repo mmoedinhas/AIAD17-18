@@ -4,6 +4,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ClientsQueue {
 	
+	//queue of clients waiting
 	private ConcurrentLinkedQueue<Client> queue;
 	private int currentWaitTime;
 	

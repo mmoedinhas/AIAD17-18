@@ -4,6 +4,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+/**
+ * Class with the fields required by the client
+ */
 public class RequiredSpecs {
 	private int memory;
 	private int cpu;
@@ -21,6 +24,9 @@ public class RequiredSpecs {
 		this.time = time;
 	}
 	
+	/*
+	 * Constructor receiving the field in a string in JSON format
+	 */
 	public RequiredSpecs(String specs){
 		JSONParser parser = new JSONParser();
 		JSONObject content;
@@ -41,6 +47,9 @@ public class RequiredSpecs {
 		this.time = specs.getTime();
 	}
 
+	/*
+	 * Convert object to string in JSON format
+	 */
 	@Override
 	public String toString() {
 		JSONObject messageContent = new JSONObject();
@@ -73,7 +82,4 @@ public class RequiredSpecs {
 	public void setTime(int time) {
 		this.time = time;
 	}
-	
-	
-	
 }

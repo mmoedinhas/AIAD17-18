@@ -27,12 +27,13 @@ public class AgentSuperPC extends Agent {
 	private double pricePerMemoryUnit; //1MB is x euro
 	private double pricePerCpuUnit; //1Mhz of processing power is x euro
 	private double pricePerSecond; //1 second of usage is x euro
-	private double discountPerWatingSecond;
+	private double discountPerWaitingSecond;
 	
 	private int memory; // PC's memory in kB
 	private int cpu; // PC's cpu in MHz
 	private int memoryTaken; // PC's memory taken by programs
 	private int cpuTaken; // PC's cpu taken by programs
+	
 	//PC's accepted proposals with the name of the agent and the memory and cpu required by the agent
 	private ConcurrentHashMap<String, RequiredSpecs> myRunningPrograms = 
 			new ConcurrentHashMap<String, RequiredSpecs>(); 
@@ -66,7 +67,7 @@ public class AgentSuperPC extends Agent {
 		this.pricePerMemoryUnit = (Double)quirks[2];
 		this.pricePerCpuUnit = (Double)quirks[3];
 		this.pricePerSecond = (Double)quirks[4];
-		this.discountPerWatingSecond = (Double)quirks[5];
+		this.discountPerWaitingSecond = (Double)quirks[5];
 		
 		System.out.println(this);
 	}
@@ -141,6 +142,10 @@ public class AgentSuperPC extends Agent {
 		runClientsInQueue();
 	}
 	
+	/**
+	 * @param specs
+	 * @return true if enough space and cpu to run immediately
+	 */
 	private boolean canRun(RequiredSpecs specs) {
 		if(queue.size() == 0 && cpu - cpuTaken >= specs.getCpu() && memory - memoryTaken >= specs.getMemory()){
 			return true;
@@ -150,7 +155,7 @@ public class AgentSuperPC extends Agent {
 	
 	/**
 	 * Checks if we can accept the proposal
-	 * @return true if superPC has enough memory and cpu available
+	 * @return true if superPC has enough total memory and cpu available
 	 */
 	protected boolean canAccept(RequiredSpecs specs){
 		if(getMemory() > specs.getMemory() && getCpu() > specs.getCpu()){
@@ -227,14 +232,18 @@ public class AgentSuperPC extends Agent {
 			}
 			
 			while(waitingSpecs.size() != 0){
-				//ve o tempo minimo para sair um programa de correr
+				//get minimum time in running programs
 				int minTime = getMinTime(runningPrograms);
 				totalTime += minTime;
-				//retira o tempo minimo de todos os programas
+				//remove minimum time from running programs
 				removeTimeFromRunningPrograms(runningPrograms, minTime);
+				
+				//remove programs with time equal to 0
 				int[] resultTaken = removeEndedRunningPrograms(runningPrograms,cpuTaken,memTaken);
 				cpuTaken = resultTaken[0];
 				memTaken = resultTaken[1];
+				
+				//move programs from queue to running programs 
 				resultTaken = addProgramstoRunning(runningPrograms,waitingSpecs,maxCpu,cpuTaken,maxMem,memTaken);
 				cpuTaken = resultTaken[0];
 				memTaken = resultTaken[1];
@@ -243,6 +252,16 @@ public class AgentSuperPC extends Agent {
 			return totalTime;
 		}
 		
+		/**
+		 * Move all programs that fit from queue to running programs
+		 * @param runningPrograms
+		 * @param waitingSpecs
+		 * @param maxCpu
+		 * @param cpuTaken
+		 * @param maxMem
+		 * @param memTaken
+		 * @return {cpuTaken, memTaken} after programs were added to the running programs 
+		 */
 		private int[] addProgramstoRunning(Vector<RequiredSpecs> runningPrograms, 
 				ConcurrentLinkedQueue<RequiredSpecs> waitingSpecs, int maxCpu, int cpuTaken, int maxMem, int memTaken) {
 			while(waitingSpecs.size() > 0){
@@ -275,6 +294,13 @@ public class AgentSuperPC extends Agent {
 			}
 		}
 		
+		/**
+		 * 
+		 * @param runningPrograms
+		 * @param cpuTaken
+		 * @param memTaken
+		 * @return {cpuTaken,memTaken} after programs that ended were removed
+		 */
 		protected int[] removeEndedRunningPrograms(Vector<RequiredSpecs> runningPrograms,Integer cpuTaken,Integer memTaken){
 			for (int i = 0; i <  runningPrograms.size(); i++) {
 				if(runningPrograms.elementAt(i).getTime() == 0){
@@ -356,7 +382,7 @@ public class AgentSuperPC extends Agent {
 	}
 	
 	/**
-	 * The price is higher for super PC's that have less memory and cpu occupied.
+	 * The price is higher for super PC's that have less memory and cpu occupied and less waiting time.
 	 * @param specs The specifications needed for the client program to run.
 	 * @return the price proposed by the super pc
 	 */
@@ -367,8 +393,8 @@ public class AgentSuperPC extends Agent {
 			priceMemory = specs.getMemory()*this.pricePerMemoryUnit*(1 - getFractionMemoryTaken());
 			priceCPU = specs.getCpu()*this.pricePerCpuUnit*(1 - getFractionCpuTaken());
 		}else{
-			priceMemory = specs.getMemory()*this.pricePerMemoryUnit - this.discountPerWatingSecond * waitingTime;
-			priceCPU = specs.getCpu()*this.pricePerCpuUnit - this.discountPerWatingSecond * waitingTime;
+			priceMemory = specs.getMemory()*this.pricePerMemoryUnit - this.discountPerWaitingSecond * waitingTime;
+			priceCPU = specs.getCpu()*this.pricePerCpuUnit - this.discountPerWaitingSecond * waitingTime;
 		}
 		double finalPrice = (priceMemory + priceCPU)*specs.getTime()*this.pricePerSecond;
 		if(finalPrice <= 0){

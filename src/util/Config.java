@@ -1,6 +1,9 @@
 package util;
 import java.util.Properties;
 
+/**
+ * Class to read fields of the config file
+ */
 public class Config
 {
    Properties configFile;

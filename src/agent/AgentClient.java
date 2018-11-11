@@ -115,6 +115,7 @@ public abstract class AgentClient extends Agent {
 			double proposedPrice = 0;
 			
 			try {
+				//get proposal content
 				content = (JSONObject) parser.parse(response.getContent());
 				proposedWaitingTime = ((Long) content.get("waitingTime")).intValue();
 				proposedPrice = (Double) content.get("price");

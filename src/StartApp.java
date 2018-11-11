@@ -34,7 +34,7 @@ public class StartApp {
 		Profile p2 = new ProfileImpl();
 		ContainerController container = rt.createAgentContainer(p2);
 
-		// Get configurations
+		// Get clients configurations
 		Config config = new Config(configFileName);
 		String random=config.getProperty("shuffle");
 		int cheapClientNo = Integer.parseInt(config.getProperty("cheapClientsNo"));
@@ -48,9 +48,10 @@ public class StartApp {
 		int[] timeNeededBounds = { Integer.parseInt(config.getProperty("clientTimeLower")),
 				Integer.parseInt(config.getProperty("clientTimeUpper")) };
 		String[] superPCNames = new String[superPCNo];
-		// Launch SuperPC agents
-
+		
+		
 		try {
+			// Get superPCs configurations
 			int[] memoryAvailableBounds = { Integer.parseInt(config.getProperty("superPCMemoryLower")),
 					Integer.parseInt(config.getProperty("superPCMemoryUpper")) };
 			int[] cpuAvailableBounds = { Integer.parseInt(config.getProperty("superPCCPULower")),
@@ -67,7 +68,8 @@ public class StartApp {
 					cpuAvailableBounds,pricePerMemoryUnitBounds,pricePerCpuUnitBounds,pricePerSecondBounds,discountPerWatingSecondBounds);
 
 			Object[][] superPcsQuirks = superPcsGen.generate();
-
+			
+			// Launch SuperPC agents
 			for (int i = 0; i < superPcsQuirks.length; i++) {
 				String superPCName = "superPC" + i;
 				Object[] superPCArgs = { superPCName, superPcsQuirks[i] };
@@ -83,7 +85,6 @@ public class StartApp {
 		}
 		
 		// Launch client agents
-		
 		int clientNo = cheapClientNo + inAHurryClientNo + smartClientNo;
 
 		try {

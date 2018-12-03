@@ -11,6 +11,7 @@ import generator.SuperPCArgsGenerator;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.wrapper.*;
+import util.CSVUtil;
 import util.Config;
 
 public class StartApp {
@@ -66,9 +67,10 @@ public class StartApp {
 					Double.parseDouble(config.getProperty("discountPerWatingSecondUpper")) };
 			SuperPCArgsGenerator superPcsGen = new SuperPCArgsGenerator(superPCNo, memoryAvailableBounds,
 					cpuAvailableBounds,pricePerMemoryUnitBounds,pricePerCpuUnitBounds,pricePerSecondBounds,discountPerWatingSecondBounds);
-
+			
 			Object[][] superPcsQuirks = superPcsGen.generate();
 			
+			CSVUtil.writeHeader();
 			// Launch SuperPC agents
 			for (int i = 0; i < superPcsQuirks.length; i++) {
 				String superPCName = "superPC" + i;
@@ -76,6 +78,8 @@ public class StartApp {
 				AgentController ac = container.createNewAgent(superPCName, "agent.AgentSuperPC", superPCArgs);
 				superPCNames[i] = ac.getName();
 				ac.start();
+				//fill the CSVInfo
+				CSVUtil.addPC((int)superPcsQuirks[i][0],(int)superPcsQuirks[i][1]);
 			}
 
 		} catch (StaleProxyException e) {

@@ -7,6 +7,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import jade.lang.acl.ACLMessage;
+import util.CSVUtil;
 
 public class AgentCheapClient extends AgentClient {
 
@@ -25,7 +26,7 @@ public class AgentCheapClient extends AgentClient {
 		public RequireCheapSuperPC(AgentClient a, ACLMessage cfp) {
 			super(a, cfp);
 		}
-		
+
 		/**
 		 * Accepts the computer that offers the lower price.
 		 */
@@ -59,7 +60,7 @@ public class AgentCheapClient extends AgentClient {
 					minPrice = proposedPrice;
 					minPriceIndex = i;
 				}
-				
+
 				System.out.println(getProposalMessage((ACLMessage) responses.get(i)));
 			}
 
@@ -71,8 +72,22 @@ public class AgentCheapClient extends AgentClient {
 			for (int i = 0; i < responses.size(); i++) {
 				ACLMessage msg = ((ACLMessage) responses.get(i)).createReply();
 
-				if (minPriceIndex == i)
+				if (minPriceIndex == i) {
 					msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+					// write the data in the data file using class CSVInfo
+					JSONParser parser = new JSONParser();
+					JSONObject content;
+					try {
+						content = (JSONObject) parser.parse(((ACLMessage) responses.get(i)).getContent());
+						int waitingTime = ((Long) content.get("waitingTime")).intValue();
+						CSVUtil.writeInfo(memoryNeeded, cpuNeeded, timeNeeded, waitingTime);
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				}
+
 				else
 					msg.setPerformative(ACLMessage.REJECT_PROPOSAL);
 

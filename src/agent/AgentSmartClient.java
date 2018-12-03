@@ -9,6 +9,7 @@ import org.json.simple.parser.ParseException;
 
 import generator.Generator;
 import jade.lang.acl.ACLMessage;
+import util.CSVUtil;
 
 public class AgentSmartClient extends AgentClient {
 
@@ -87,8 +88,20 @@ public class AgentSmartClient extends AgentClient {
 			for (int i = 0; i < responses.size(); i++) {
 				ACLMessage msg = ((ACLMessage) responses.get(i)).createReply();
 
-				if (chosenPCIndex == i)
+				if (chosenPCIndex == i) {
 					msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+					// write the data in the data file using class CSVInfo
+					JSONParser parser = new JSONParser();
+					JSONObject content;
+					try {
+						content = (JSONObject) parser.parse(((ACLMessage) responses.get(i)).getContent());
+						int waitingTime = ((Long) content.get("waitingTime")).intValue();
+						CSVUtil.writeInfo(memoryNeeded, cpuNeeded, timeNeeded, waitingTime);
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 				else
 					msg.setPerformative(ACLMessage.REJECT_PROPOSAL);
 

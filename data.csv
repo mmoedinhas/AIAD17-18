@@ -1,0 +1,11 @@
+memoria_pedida;processamento_pedido;tempo_pedido;n_servidores_low_mem(1000 - 3000);n_servidores_low_cpu(1000 - 3000);n_servidores_med_mem(3000 - 7000);n_servidores_med_cpu(3000 - 7000);n_servidores_high_mem(7000 - 10000);n_servidores_high_cpu(7000 - 10000); tempo_de_espera 
+10;10;1000;0;3;0;0;3;0;0
+10;10;1000;0;3;0;0;3;0;0
+10;10;1000;0;3;0;0;3;0;0
+10;10;1000;0;3;0;0;3;0;0
+10;10;1000;0;3;0;0;3;0;0
+10;10;1000;0;3;0;0;3;0;0
+10;10;1000;0;3;0;0;3;0;1000
+10;10;1000;0;3;0;0;3;0;0
+10;10;1000;0;3;0;0;3;0;1000
+10;10;1000;0;3;0;0;3;0;0

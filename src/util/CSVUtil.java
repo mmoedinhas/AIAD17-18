@@ -14,7 +14,7 @@ public class CSVUtil {
 	public static int nPCMedCpu = 0;
 	public static int nPCHighMem = 0;
 	public static int nPCHighCpu = 0;
-	public static String dataName = "data.csv";
+	public static String dataName;
 	
 	public static void addPC(int mem, int cpu) {
 		if(mem >= 1000 && mem < 3000) {
@@ -34,10 +34,11 @@ public class CSVUtil {
 		}
 	}
 	
-	public static void writeInfo(int mem, int cpu, int tempoPedido, int tempoEspera) {
+	public static void writeInfo(String tipo, int mem, int cpu, int tempoPedido, int tempoEspera) {
 		try {
+			
 		    FileWriter fw = new FileWriter(dataName,true); //the true will append the new data
-		    fw.write(makeString(mem, cpu, tempoPedido, tempoEspera));//appends the string to the file
+		    fw.write(makeString(tipo,mem, cpu, tempoPedido, tempoEspera));//appends the string to the file
 		    fw.close();
 			
 		} catch (IOException e) {
@@ -46,19 +47,21 @@ public class CSVUtil {
 		}
 	}
 	
-	public static String makeString(int mem, int cpu, int tempoPedido, int tempoEspera) {
-		return mem + ";" + cpu + ";" + tempoPedido + ";" + nPCLowMem + ";" + 
+	public static String makeString(String tipo, int mem, int cpu, int tempoPedido, int tempoEspera) {
+		return tipo + ";" + mem + ";" + cpu + ";" + tempoPedido + ";" + nPCLowMem + ";" + 
 				nPCLowCpu + ";" + nPCMedMem + ";" + nPCMedCpu + ";" + nPCHighMem + ";" + 
 				nPCHighCpu + ";" + tempoEspera + "\n";
 	}
 	
 	public static String makeHeader() {
-		return "memoria_pedida;processamento_pedido;tempo_pedido;n_servidores_low_mem(1000 - 3000);n_servidores_low_cpu(1000 - 3000);n_servidores_med_mem(3000 - 7000);n_servidores_med_cpu(3000 - 7000);n_servidores_high_mem(7000 - 10000);n_servidores_high_cpu(7000 - 10000); tempo_de_espera \n";
+		return "tipo;memoria_pedida;processamento_pedido;tempo_pedido;n_servidores_low_mem(1000 - 3000);n_servidores_low_cpu(1000 - 3000);n_servidores_med_mem(3000 - 7000);n_servidores_med_cpu(3000 - 7000);n_servidores_high_mem(7000 - 10000);n_servidores_high_cpu(7000 - 10000); tempo_de_espera \n";
 	}
 	
 	public static void writeHeader() {
 		try {
-		    FileWriter fw = new FileWriter(dataName,true); //the true will append the new data
+			
+			File file = new File(dataName);
+		    FileWriter fw = new FileWriter(file); //the true will append the new data
 		    fw.write(makeHeader());//appends the string to the file
 		    fw.close();
 			

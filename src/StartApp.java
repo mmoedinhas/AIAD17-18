@@ -23,6 +23,8 @@ public class StartApp {
 	public static void main(String[] args) throws InterruptedException {
 
 		String configFileName = args[0];
+		String dataFileName = args[1]; //name of the data file
+		CSVUtil.dataName = dataFileName;
 
 		// Get a JADE runtime
 		Runtime rt = Runtime.instance();

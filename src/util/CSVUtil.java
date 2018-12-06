@@ -15,7 +15,8 @@ public class CSVUtil {
 	public static int nPCHighMem = 0;
 	public static int nPCHighCpu = 0;
 	public static String dataName;
-	public static long runningTime=0;
+	public static int runningTime=0;
+	private static int clientsStillRunning;
 	
 	public static void addPC(int mem, int cpu) {
 		if(mem >= 1000 && mem < 3000) {
@@ -37,8 +38,8 @@ public class CSVUtil {
 	
 	public static void writeInfo(String tipo, long arrival_time, int mem, int cpu, int tempoPedido, int tempoEspera) {
 		try {
-			
-		    FileWriter fw = new FileWriter(dataName,true); //the true will append the new data
+			File f = new File(dataName);
+		    FileWriter fw = new FileWriter(f,true); //the true will append the new data
 		    fw.write(makeString(tipo,arrival_time,mem, cpu, tempoPedido, tempoEspera));//appends the string to the file
 		    fw.close();
 			
@@ -70,6 +71,18 @@ public class CSVUtil {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public static synchronized void setClientsStillRunning(int clients) {
+		clientsStillRunning = clients;
+	}
+	
+	public static synchronized void decrementClientsStillRunning() {
+		clientsStillRunning--;
+	}
+	
+	public static int getClientsStillRunning() {
+		return clientsStillRunning;
 	}
 
 }

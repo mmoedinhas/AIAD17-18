@@ -17,6 +17,7 @@ import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 import jade.proto.ContractNetResponder;
 import jade.wrapper.AgentController;
+import util.CSVUtil;
 import util.ClientsQueue;
 import util.RequiredSpecs;
 import util.Timer;
@@ -138,6 +139,8 @@ public class AgentSuperPC extends Agent {
 	}
 	
 	public synchronized void prepareNextClient(String oldClientName) {
+		CSVUtil.decrementClientsStillRunning();
+		System.out.println( CSVUtil.getClientsStillRunning() + " clients still running");
 		deallocateSpecs(oldClientName);
 		runClientsInQueue();
 	}

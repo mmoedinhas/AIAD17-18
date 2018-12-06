@@ -40,6 +40,8 @@ public class StartApp {
 		// Get clients configurations
 		Config config = new Config(configFileName);
 		String random=config.getProperty("shuffle");
+		int[] waitingTimeBounds = {Integer.parseInt(config.getProperty("waitingTimeMin")),
+				Integer.parseInt(config.getProperty("waitingTimeMax"))};
 		int cheapClientNo = Integer.parseInt(config.getProperty("cheapClientsNo"));
 		int inAHurryClientNo = Integer.parseInt(config.getProperty("inAHurryClientsNo"));
 		int smartClientNo = Integer.parseInt(config.getProperty("smartClientsNo"));
@@ -92,10 +94,11 @@ public class StartApp {
 		
 		// Launch client agents
 		int clientNo = cheapClientNo + inAHurryClientNo + smartClientNo;
+		CSVUtil.setClientsStillRunning(clientNo);
 
 		try {
 			ClientArgsGenerator clientsGen = new ClientArgsGenerator(clientNo, superPCNo, memoryNeededBounds,
-					cpuNeededBounds, timeNeededBounds);
+					cpuNeededBounds, timeNeededBounds,waitingTimeBounds);
 			Integer[][] clientsQuirks = clientsGen.generate();
 			
 			Vector<AgentController> agentsVector = new Vector<AgentController>();

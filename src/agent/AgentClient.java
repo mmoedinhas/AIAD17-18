@@ -30,11 +30,10 @@ public abstract class AgentClient extends Agent {
 	protected int timeNeeded; // time needed in s
 	protected String[] superPCsNames; // names of the superPCs
 	protected ConcurrentLinkedQueue<AgentController> agentsQueue;
-	protected long arrivalTime = 0;
+	protected int arrivalTime = 0;
 
 	public void setup() {
-		Generator gen = new Generator();
-		long waitingTime = gen.generate(0, 100);
+		int waitingTime = initClient();
 		CSVUtil.runningTime += waitingTime;
 		arrivalTime = CSVUtil.runningTime;
 		System.out.println("vou esperar " + waitingTime);
@@ -44,12 +43,12 @@ public abstract class AgentClient extends Agent {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		initClient();
+		
 	}
 
-	public void initClient() {
+	public int initClient() {
 		Object[] args = getArguments();
-
+		
 		Integer[] quirks = (Integer[]) args[0];
 		String[] superPCNames = (String[]) args[1];
 		this.agentsQueue = (ConcurrentLinkedQueue<AgentController>)args[2];
@@ -58,6 +57,8 @@ public abstract class AgentClient extends Agent {
 		this.cpuNeeded = quirks[2];
 		this.timeNeeded = quirks[3];
 		this.superPCsNames = superPCNames;
+		
+		return quirks[4];
 	}
 
 	@Override

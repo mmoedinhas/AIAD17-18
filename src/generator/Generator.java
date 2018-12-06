@@ -12,5 +12,10 @@ public class Generator {
 		Random rand = new Random();
 		return rand.nextDouble()*(max - min) + min;
 	}
+	
+	public long generate(long min, long max) {
+		Random rand = new Random();
+		return rand.nextLong()*(max - min) + min;
+	}
 
 }

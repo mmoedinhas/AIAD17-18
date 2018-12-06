@@ -15,6 +15,7 @@ public class CSVUtil {
 	public static int nPCHighMem = 0;
 	public static int nPCHighCpu = 0;
 	public static String dataName;
+	public static long runningTime=0;
 	
 	public static void addPC(int mem, int cpu) {
 		if(mem >= 1000 && mem < 3000) {

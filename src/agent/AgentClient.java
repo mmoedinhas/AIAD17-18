@@ -13,11 +13,14 @@ import jade.lang.acl.MessageTemplate;
 import jade.proto.ContractNetInitiator;
 import jade.wrapper.AgentController;
 import jade.wrapper.StaleProxyException;
+import util.CSVUtil;
 import util.RequiredSpecs;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
+import generator.Generator;
 
 public abstract class AgentClient extends Agent {
 
@@ -30,6 +33,17 @@ public abstract class AgentClient extends Agent {
 	protected long arrivalTime = 0;
 
 	public void setup() {
+		Generator gen = new Generator();
+		long waitingTime = gen.generate(0, 100);
+		CSVUtil.runningTime += waitingTime;
+		arrivalTime = CSVUtil.runningTime;
+		System.out.println("vou esperar " + waitingTime);
+		try {
+			Thread.sleep(waitingTime);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		initClient();
 	}
 

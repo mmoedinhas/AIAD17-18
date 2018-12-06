@@ -2,6 +2,8 @@ package util;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -38,10 +40,14 @@ public class CSVUtil {
 	
 	public static void writeInfo(String tipo, long arrival_time, int mem, int cpu, int tempoPedido, int tempoEspera) {
 		try {
-			File f = new File(dataName);
+			File f = new File(dataName);		
 		    FileWriter fw = new FileWriter(f,true); //the true will append the new data
-		    fw.write(makeString(tipo,arrival_time,mem, cpu, tempoPedido, tempoEspera));//appends the string to the file
-		    fw.close();
+		    BufferedWriter bw = new BufferedWriter(fw);
+			String s = makeString(tipo,arrival_time,mem, cpu, tempoPedido, tempoEspera);
+			bw.write(s);//appends the string to the file
+			bw.close();
+		
+		    
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -63,9 +69,11 @@ public class CSVUtil {
 		try {
 			
 			File file = new File(dataName);
-		    FileWriter fw = new FileWriter(file); //the true will append the new data
-		    fw.write(makeHeader());//appends the string to the file
-		    fw.close();
+		    FileWriter fw = new FileWriter(file,true); //the true will append the new data
+		    if(!file.exists()) {
+		    	fw.write(makeHeader());//appends the string to the file
+			    fw.close();
+		    }
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

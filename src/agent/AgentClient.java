@@ -115,6 +115,7 @@ public abstract class AgentClient extends Agent {
 				System.out.println(((ACLMessage)result).getContent());
 			}
 			callNextAgentInQueue();
+			myAgent.doDelete();
 		}
 		
 		protected String getRejectionMsg(ACLMessage response) {

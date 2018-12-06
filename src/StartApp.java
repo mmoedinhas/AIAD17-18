@@ -31,6 +31,7 @@ public class StartApp {
 
 		// Create the main container
 		Profile p1 = new ProfileImpl();
+		p1.setParameter("gui", "true");
 		ContainerController mainContainer = rt.createMainContainer(p1);
 
 		// Create an additional container

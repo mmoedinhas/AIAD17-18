@@ -319,7 +319,8 @@ public class AgentSuperPC extends Agent {
 		/**
 		 * Handles the rejection of a proposal
 		 */
-		protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {}
+		protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
+		}
 		
 		/**
 		 * Handles the acceptance of a proposal

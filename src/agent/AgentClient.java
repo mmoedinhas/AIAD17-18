@@ -27,6 +27,7 @@ public abstract class AgentClient extends Agent {
 	protected int timeNeeded; // time needed in s
 	protected String[] superPCsNames; // names of the superPCs
 	protected ConcurrentLinkedQueue<AgentController> agentsQueue;
+	protected long arrivalTime = 0;
 
 	public void setup() {
 		initClient();

@@ -32,9 +32,9 @@ public class CSVUtil {
 		if(cpu >= 1000 && cpu < 3000) {
 			nPCLowCpu++;
 		} else if (cpu >= 3000 && cpu < 7000) {
-			nPCLowCpu++;
+			nPCMedCpu++;
 		} else {
-			nPCLowCpu++;
+			nPCHighCpu++;
 		}
 	}
 	
@@ -70,7 +70,7 @@ public class CSVUtil {
 			
 			File file = new File(dataName);
 		    FileWriter fw = new FileWriter(file,true); //the true will append the new data
-		    if(!file.exists()) {
+		    if(file.length() == 0) {
 		    	fw.write(makeHeader());//appends the string to the file
 			    fw.close();
 		    }

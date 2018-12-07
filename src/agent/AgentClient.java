@@ -36,7 +36,7 @@ public abstract class AgentClient extends Agent {
 		int waitingTime = initClient();
 		CSVUtil.runningTime += waitingTime;
 		arrivalTime = CSVUtil.runningTime;
-		System.out.println("vou esperar " + waitingTime);
+		//System.out.println("vou esperar " + waitingTime);
 		try {
 			Thread.sleep(waitingTime);
 		} catch (InterruptedException e) {

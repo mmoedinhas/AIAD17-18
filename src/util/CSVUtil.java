@@ -38,7 +38,7 @@ public class CSVUtil {
 		}
 	}
 	
-	public static void writeInfo(String tipo, long arrival_time, int mem, int cpu, int tempoPedido, int tempoEspera) {
+	public static void writeInfo(int tipo, long arrival_time, int mem, int cpu, int tempoPedido, int tempoEspera) {
 		try {
 			File f = new File(dataName);		
 		    FileWriter fw = new FileWriter(f,true); //the true will append the new data
@@ -55,7 +55,7 @@ public class CSVUtil {
 		}
 	}
 	
-	public static String makeString(String tipo, long arrival_time, int mem, int cpu, int tempoPedido, int tempoEspera) {
+	public static String makeString(int tipo, long arrival_time, int mem, int cpu, int tempoPedido, int tempoEspera) {
 		return tipo + ";" + arrival_time + ";"+ mem + ";" + cpu + ";" + tempoPedido + ";" + nPCLowMem + ";" + 
 				nPCLowCpu + ";" + nPCMedMem + ";" + nPCMedCpu + ";" + nPCHighMem + ";" + 
 				nPCHighCpu + ";" + tempoEspera + "\n";

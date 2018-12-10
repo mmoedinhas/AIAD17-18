@@ -96,7 +96,7 @@ public class AgentSmartClient extends AgentClient {
 					try {
 						content = (JSONObject) parser.parse(((ACLMessage) responses.get(i)).getContent());
 						int waitingTime = ((Long) content.get("waitingTime")).intValue();
-						CSVUtil.writeInfo("Smart",arrivalTime,memoryNeeded, cpuNeeded, timeNeeded, waitingTime);
+						CSVUtil.writeInfo(1,arrivalTime,memoryNeeded, cpuNeeded, timeNeeded, waitingTime);
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

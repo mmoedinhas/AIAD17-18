@@ -80,7 +80,7 @@ public class AgentCheapClient extends AgentClient {
 					try {
 						content = (JSONObject) parser.parse(((ACLMessage) responses.get(i)).getContent());
 						int waitingTime = ((Long) content.get("waitingTime")).intValue();
-						CSVUtil.writeInfo("Cheap",arrivalTime, memoryNeeded, cpuNeeded, timeNeeded, waitingTime);
+						CSVUtil.writeInfo(2,arrivalTime, memoryNeeded, cpuNeeded, timeNeeded, waitingTime);
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
